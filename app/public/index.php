@@ -12,7 +12,7 @@ use function FastRoute\simpleDispatcher;
 // 1. Define Routes
 $dispatcher = simpleDispatcher(function (RouteCollector $r) {
 
-    // 👇 Make RoomShift the homepage
+    // Make RoomShift the homepage
     $r->addRoute('GET', '/', ['App\Controllers\RoomController', 'index']);
 
     // Example route from lecture (you can keep using this)
@@ -25,7 +25,7 @@ $dispatcher = simpleDispatcher(function (RouteCollector $r) {
     // Handle create-room form submission (POST)
     $r->addRoute('POST', '/rooms', ['App\Controllers\RoomController', 'store']);
 
-    // If you still want your old Home page for testing:
+    // old Home page for testing:
     // $r->addRoute('GET', '/home', ['App\Controllers\HomeController', 'home']);
 });
 
@@ -42,7 +42,7 @@ $uri = rawurldecode($uri);
 // Dispatch the request
 $routeInfo = $dispatcher->dispatch($httpMethod, $uri);
 
-// 3. Handle the Route (same style as your class example)
+// 3. Handle the Route
 switch ($routeInfo[0]) {
     case FastRoute\Dispatcher::NOT_FOUND:
         http_response_code(404);
