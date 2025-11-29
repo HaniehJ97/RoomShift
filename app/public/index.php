@@ -4,7 +4,7 @@
  * Main Application Entry Point
  */
 
-require __DIR__ . '/../vendor/autoload.php'; // Setup from boilerplate repo
+require __DIR__ . '/../vendor/autoload.php';
 
 use FastRoute\RouteCollector;
 use function FastRoute\simpleDispatcher;
@@ -12,21 +12,17 @@ use function FastRoute\simpleDispatcher;
 // 1. Define Routes
 $dispatcher = simpleDispatcher(function (RouteCollector $r) {
 
-    // Make RoomShift the homepage
+    // RoomShift routes - FIXED: No duplicates!
     $r->addRoute('GET', '/', ['App\Controllers\RoomController', 'index']);
-
-    // Example route from lecture (you can keep using this)
-    $r->addRoute('GET', '/hello/{name}', ['App\Controllers\HelloController', 'greet']);
-
-    // RoomShift routes
+    
     // Show all rooms + form to create a new one
     $r->addRoute('GET', '/rooms', ['App\Controllers\RoomController', 'index']);
 
     // Handle create-room form submission (POST)
     $r->addRoute('POST', '/rooms', ['App\Controllers\RoomController', 'store']);
 
-    // old Home page for testing:
-    // $r->addRoute('GET', '/home', ['App\Controllers\HomeController', 'home']);
+    // Example route from lecture (optional - comment out if you don't have HelloController)
+    // $r->addRoute('GET', '/hello/{name}', ['App\Controllers\HelloController', 'greet']);
 });
 
 // 2. Get Request Method and URI
@@ -55,22 +51,12 @@ switch ($routeInfo[0]) {
         break;
 
     case FastRoute\Dispatcher::FOUND:
-
-        // Get the class name (e.g. App\Controllers\RoomController)
         $class = $routeInfo[1][0];
-
-        // Get the method name (e.g. 'index', 'store', 'greet')
         $method = $routeInfo[1][1];
-
-        // Instantiate the controller
-        $controller = new $class();
-
-        // Dynamic variables from URL (e.g. {name})
         $vars = $routeInfo[2];
 
-        // Call the controller method and pass $vars (array)
-        // Your controller methods should accept one parameter, e.g. function index(array $vars = []) {}
+        // Instantiate the controller and call the method
+        $controller = new $class();
         $controller->$method($vars);
-
         break;
 }
