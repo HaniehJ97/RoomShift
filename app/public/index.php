@@ -3,7 +3,9 @@
 /**
  * Main Application Entry Point
  */
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require __DIR__ . '/../vendor/autoload.php';
 
 use FastRoute\RouteCollector;
@@ -12,17 +14,20 @@ use function FastRoute\simpleDispatcher;
 // 1. Define Routes
 $dispatcher = simpleDispatcher(function (RouteCollector $r) {
 
-    // RoomShift routes - FIXED: No duplicates!
+    // Home and Rooms
     $r->addRoute('GET', '/', ['App\Controllers\RoomController', 'index']);
-    
-    // Show all rooms + form to create a new one
     $r->addRoute('GET', '/rooms', ['App\Controllers\RoomController', 'index']);
-
-    // Handle create-room form submission (POST)
     $r->addRoute('POST', '/rooms', ['App\Controllers\RoomController', 'store']);
-
-    // Example route from lecture (optional - comment out if you don't have HelloController)
-    // $r->addRoute('GET', '/hello/{name}', ['App\Controllers\HelloController', 'greet']);
+    
+    // Auth Routes
+    $r->addRoute('GET', '/login', ['App\Controllers\AuthController', 'showLogin']);
+    $r->addRoute('POST', '/login', ['App\Controllers\AuthController', 'login']);
+    $r->addRoute('GET', '/register', ['App\Controllers\AuthController', 'showRegister']);
+    $r->addRoute('POST', '/register', ['App\Controllers\AuthController', 'register']);
+    $r->addRoute('GET', '/logout', ['App\Controllers\AuthController', 'logout']);
+    
+    // Admin Route
+    $r->addRoute('GET', '/admin', ['App\Controllers\AdminController', 'dashboard']);
 });
 
 // 2. Get Request Method and URI
