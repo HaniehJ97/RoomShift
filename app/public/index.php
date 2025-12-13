@@ -3,6 +3,16 @@
 /**
  * Main Application Entry Point
  */
+// ====== SESSION CONFIGURATION ======
+// Configure session BEFORE starting it
+ini_set('session.cookie_httponly', '1');
+ini_set('session.cookie_secure', isset($_SERVER['HTTPS']) ? '1' : '0');
+ini_set('session.use_strict_mode', '1');
+ini_set('session.cookie_samesite', 'Strict');
+
+// Set session name to prevent fixation
+session_name('ROOMSHIFT_SESSID');
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
