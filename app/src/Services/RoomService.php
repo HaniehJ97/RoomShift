@@ -3,15 +3,15 @@
 namespace App\Services;
 
 use App\Models\RoomModel;
-use App\Repositories\RoomRepository;
+use App\Repositories\IRoomRepository;
 
 class RoomService implements IRoomService
 {
-    private \App\Repositories\IRoomRepository $roomRepository;
+    private IRoomRepository $roomRepository;
 
-    public function __construct()
+    public function __construct(IRoomRepository $roomRepository)
     {
-        $this->roomRepository = new RoomRepository();
+        $this->roomRepository = $roomRepository;
     }
 
     public function getAllRooms(): array
@@ -19,13 +19,24 @@ class RoomService implements IRoomService
         return $this->roomRepository->getAll();
     }
 
+    public function getPublishedRooms(): array
+    {
+        return $this->roomRepository->getPublishedRooms();
+    }
+
+    public function getRoomsByCreator(int $creatorId): array
+    {
+        return $this->roomRepository->getRoomsByCreator($creatorId);
+    }
+
     public function getRoomById(int $id): ?RoomModel
     {
         return $this->roomRepository->getById($id);
     }
 
-    public function createRoom(RoomModel $room): int
+    public function createRoom(array $roomData): int
     {
+        $room = new RoomModel($roomData);
         $room->validate();
         return $this->roomRepository->create($room);
     }
@@ -39,5 +50,10 @@ class RoomService implements IRoomService
     public function deleteRoom(int $id): void
     {
         $this->roomRepository->delete($id);
+    }
+
+    public function togglePublish(int $roomId, bool $publish): bool
+    {
+        return $this->roomRepository->togglePublish($roomId, $publish);
     }
 }

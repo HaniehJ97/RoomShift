@@ -27,6 +27,11 @@ class UserModel
         $this->updated_at = $data['updated_at'] ?? date('Y-m-d H:i:s');
     }
 
+    public const ROLE_PLAYER = 'player';
+    public const ROLE_CREATOR = 'creator';
+    public const ROLE_ADMIN = 'admin';
+
+
     public function validate(): void
     {
         $email = trim($this->email);
@@ -51,6 +56,11 @@ class UserModel
 
         if (strlen($name) < 2) {
             throw new \InvalidArgumentException('Name must be at least 2 characters long.');
+        }
+         // Validate role
+        $validRoles = [self::ROLE_PLAYER, self::ROLE_CREATOR, self::ROLE_ADMIN];
+        if (!in_array($this->role, $validRoles)) {
+            $this->role = self::ROLE_PLAYER;
         }
     }
 

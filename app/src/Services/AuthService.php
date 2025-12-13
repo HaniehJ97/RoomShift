@@ -134,9 +134,17 @@ class AuthService implements IAuthService
 
     public function isAdmin(): bool
     {
-        return $this->isLoggedIn() && 
-               isset($_SESSION['user_role']) && 
-               $_SESSION['user_role'] === 'admin';
+        // First check if logged in
+        if (!$this->isLoggedIn()) {
+            return false;
+        }
+        
+        // Then check role
+        if (!isset($_SESSION['user_role'])) {
+            return false;
+        }
+        
+        return ($_SESSION['user_role'] === 'admin');
     }
 
     // ========== PRIVATE METHODS ==========

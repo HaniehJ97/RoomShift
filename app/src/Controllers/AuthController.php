@@ -4,16 +4,14 @@ namespace App\Controllers;
 
 use App\Services\IAuthService;
 use App\Services\AuthService;
-use App\Repositories\UserRepository;
 
 class AuthController
 {
     private IAuthService $authService;
 
-    public function __construct()
-    {
-        $userRepository = new UserRepository();
-        $this->authService = new AuthService($userRepository);
+    public function __construct(IAuthService $authService) {
+        
+        $this->authService = $authService;
     }
 
     public function showLogin(array $vars = []): void
