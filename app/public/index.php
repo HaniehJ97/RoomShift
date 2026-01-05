@@ -1,101 +1,108 @@
 <?php
 
-/**
- * Main Application Entry Point
- */
-// ====== SESSION CONFIGURATION ======
-// Configure session BEFORE starting it
-// session_start();
-ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_secure', isset($_SERVER['HTTPS']) ? '1' : '0');
-ini_set('session.use_strict_mode', '1');
-ini_set('session.cookie_samesite', 'Strict');
+declare(strict_types=1);
 
-// Set session name to prevent fixation
+use FastRoute\Dispatcher;
+use FastRoute\RouteCollector;
+
+// show errors during development
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
+
+// session settings
+ini_set('session.cookie_httponly', '1');
+ini_set('session.use_strict_mode', '1');
+
 session_name('ROOMSHIFT_SESSID');
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+// autoload classes
 require __DIR__ . '/../vendor/autoload.php';
 
-use FastRoute\RouteCollector;
-use function FastRoute\simpleDispatcher;
-
-// 1. Define Routes
-$dispatcher = simpleDispatcher(function (RouteCollector $r) {
-
-    // ====== PUBLIC ROUTES ======
+// define routes
+$dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
+    // rooms
     $r->addRoute('GET', '/', ['App\Controllers\RoomController', 'index']);
     $r->addRoute('GET', '/rooms', ['App\Controllers\RoomController', 'index']);
-    
-    // Auth Routes
-    $r->addRoute('GET', '/login', ['App\Controllers\AuthController', 'showLogin']);
-    $r->addRoute('POST', '/login', ['App\Controllers\AuthController', 'login']);
-    $r->addRoute('GET', '/register', ['App\Controllers\AuthController', 'showRegister']);
+    $r->addRoute('GET', '/rooms/{id:\d+}/play', ['App\Controllers\RoomController', 'play']);
+
+    // auth
+    $r->addRoute('GET',  '/login',    ['App\Controllers\AuthController', 'showLogin']);
+    $r->addRoute('POST', '/login',    ['App\Controllers\AuthController', 'login']);
+    $r->addRoute('GET',  '/register', ['App\Controllers\AuthController', 'showRegister']);
     $r->addRoute('POST', '/register', ['App\Controllers\AuthController', 'register']);
-    $r->addRoute('GET', '/logout', ['App\Controllers\AuthController', 'logout']);
-    
-    // ====== CREATOR ROUTES ======
-    $r->addRoute('GET', '/creator/rooms', ['App\Controllers\CreatorController', 'listRooms']);
-    $r->addRoute('GET', '/creator/rooms/create', ['App\Controllers\CreatorController', 'createForm']);
-    $r->addRoute('POST', '/creator/rooms', ['App\Controllers\CreatorController', 'createRoom']);
-    
-    // ====== ADMIN ROUTE ======
-    $r->addRoute('GET', '/admin', ['App\Controllers\AdminController', 'dashboard']);
-    $r->addRoute('GET', '/admin/users', ['App\Controllers\AdminController', 'listUsers']);
-    $r->addRoute('POST', '/admin/users/{id}/role', ['App\Controllers\AdminController', 'updateUserRole']);
-    $r->addRoute('GET', '/admin/rooms', ['App\Controllers\AdminController', 'listRooms']);
-    $r->addRoute('POST', '/admin/rooms/{id}/publish', ['App\Controllers\AdminController', 'toggleRoomPublish']);    
+    $r->addRoute('GET',  '/logout',   ['App\Controllers\AuthController', 'logout']);
+
+    // creator 
+    $r->addRoute('GET',  '/creator/rooms', ['App\Controllers\RoomController', 'creatorRooms']);
+    $r->addRoute('POST', '/creator/rooms', ['App\Controllers\RoomController', 'createRoom']);
+    $r->addRoute('GET',  '/creator/rooms/{id:\d+}/edit', ['App\Controllers\RoomController', 'editRoomForm']);
+    $r->addRoute('POST', '/creator/rooms/{id:\d+}/edit', ['App\Controllers\RoomController', 'updateRoom']);
+    $r->addRoute('POST', '/creator/rooms/{id:\d+}/delete', ['App\Controllers\RoomController', 'deleteRoom']);
+    $r->addRoute('GET',  '/creator/rooms/{id:\d+}/level', ['App\Controllers\RoomController', 'levelEditor']);
+    $r->addRoute('POST', '/creator/rooms/{id:\d+}/level', ['App\Controllers\RoomController', 'saveLevel']);
+
+    // admin
+    $r->addRoute('GET',  '/admin', ['App\Controllers\RoomController', 'adminDashboard']);
+    $r->addRoute('GET',  '/admin/users', ['App\Controllers\RoomController', 'adminUsers']);
+    $r->addRoute('POST', '/admin/users/{id:\d+}/role', ['App\Controllers\RoomController', 'updateUserRole']);
+    $r->addRoute('GET',  '/admin/rooms', ['App\Controllers\RoomController', 'adminRooms']);
+    $r->addRoute('POST', '/admin/rooms/{id:\d+}/publish', ['App\Controllers\RoomController', 'toggleRoomPublish']);
 });
 
-// 2. Get Request Method and URI
+// get request data
 $httpMethod = $_SERVER['REQUEST_METHOD'];
 $uri = $_SERVER['REQUEST_URI'];
 
-// Strip query string (?foo=bar) and decode URI
-if (false !== $pos = strpos($uri, '?')) {
+// remove query string from url
+if (false !== ($pos = strpos($uri, '?'))) {
     $uri = substr($uri, 0, $pos);
 }
 $uri = rawurldecode($uri);
 
-// Dispatch the request
+// match route
 $routeInfo = $dispatcher->dispatch($httpMethod, $uri);
 
-// 3. Handle the Route
+// create repositories
+$userRepository = new \App\Repositories\UserRepository();
+$roomRepository = new \App\Repositories\RoomRepository();
+
+// create services
+$authService = new \App\Services\AuthService($userRepository);
+$roomService = new \App\Services\RoomService($roomRepository);
+$adminService = new \App\Services\AdminService($userRepository, $roomRepository);
+
+// handle request
 switch ($routeInfo[0]) {
-    case FastRoute\Dispatcher::NOT_FOUND:
+    case Dispatcher::NOT_FOUND:
         http_response_code(404);
-        echo '404 Not Found';
+        echo '404 - Page not found';
         break;
 
-    case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
+    case Dispatcher::METHOD_NOT_ALLOWED:
         http_response_code(405);
-        echo '405 Method Not Allowed';
+        echo '405 - Method not allowed';
         break;
 
-   case FastRoute\Dispatcher::FOUND:
-    $class = $routeInfo[1][0];
-    $method = $routeInfo[1][1];
-    $vars = $routeInfo[2];
+    case Dispatcher::FOUND:
+        [$class, $method] = $routeInfo[1];
+        $vars = $routeInfo[2];
 
-    // ====== CREATE DEPENDENCIES FIRST ======
-    $userRepository = new \App\Repositories\UserRepository();
-    $roomRepository = new \App\Repositories\RoomRepository();
-    
-    $authService = new \App\Services\AuthService($userRepository);
-    $roomService = new \App\Services\RoomService($roomRepository);
-    
-    // ====== CREATE CONTROLLER WITH DEPENDENCIES ======
-    $controller = match($class) {
-    'App\Controllers\RoomController' => new \App\Controllers\RoomController($authService, $roomService),
-    'App\Controllers\AuthController' => new \App\Controllers\AuthController($authService), // Fixed
-    'App\Controllers\CreatorController' => new \App\Controllers\CreatorController($authService, $roomService),
-    'App\Controllers\AdminController' => new \App\Controllers\AdminController($authService, new \App\Services\AdminService($userRepository, $roomRepository)),
-    default => throw new Exception("Controller $class not configured")
-    };  
+        // create controller
+        $controller = match ($class) {
+            'App\Controllers\RoomController' =>
+                new \App\Controllers\RoomController($authService, $roomService, $adminService),
 
-    // Call the method
-    $controller->$method($vars);
-    break;
+            'App\Controllers\AuthController' =>
+                new \App\Controllers\AuthController($authService),
+
+            default => throw new Exception('Controller not found')
+        };
+
+        // call controller method
+        $controller->$method($vars);
+        break;
 }

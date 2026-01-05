@@ -38,6 +38,7 @@ class RoomService implements IRoomService
     {
         $room = new RoomModel($roomData);
         $room->validate();
+
         return $this->roomRepository->create($room);
     }
 

@@ -10,90 +10,78 @@ class UserRepository extends Repository implements IUserRepository
 {
     public function getAll(): array
     {
-        $query = 'SELECT id, email, name, role, created_at, updated_at 
-                  FROM users 
-                  ORDER BY created_at DESC';
-        
-        $statement = $this->getConnection()->query($query);
-        return $statement->fetchAll(PDO::FETCH_CLASS, UserModel::class);
-    }
+        $sql = 'SELECT id, name, email, role, created_at FROM users ORDER BY id DESC';
+        $stmt = $this->getConnection()->prepare($sql);
+        $stmt->execute();
 
-    public function getById(int $id): ?UserModel
-    {
-        $query = 'SELECT id, email, password, name, role, created_at, updated_at 
-                  FROM users 
-                  WHERE id = :id';
-        
-        $statement = $this->getConnection()->prepare($query);
-        $statement->bindValue(':id', $id, PDO::PARAM_INT);
-        $statement->execute();
-        
-        $statement->setFetchMode(PDO::FETCH_CLASS, UserModel::class);
-        return $statement->fetch() ?: null;
-    }
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $users = [];
 
-    public function getByEmail(string $email): ?UserModel
-    {
-        $query = 'SELECT id, email, password, name, role, created_at, updated_at 
-                  FROM users 
-                  WHERE email = :email';
-        
-        $statement = $this->getConnection()->prepare($query);
-        $statement->bindValue(':email', $email, PDO::PARAM_STR);
-        $statement->execute();
-        
-        $statement->setFetchMode(PDO::FETCH_CLASS, UserModel::class);
-        return $statement->fetch() ?: null;
-    }
-
-    public function create(UserModel $user): int
-    {
-        $query = 'INSERT INTO users (email, password, name, role, created_at, updated_at) 
-                  VALUES (:email, :password, :name, :role, :created_at, :updated_at)';
-        
-        $statement = $this->getConnection()->prepare($query);
-        $statement->bindValue(':email', $user->email, PDO::PARAM_STR);
-        $statement->bindValue(':password', $user->password, PDO::PARAM_STR);
-        $statement->bindValue(':name', $user->name, PDO::PARAM_STR);
-        $statement->bindValue(':role', $user->role, PDO::PARAM_STR);
-        $statement->bindValue(':created_at', $user->created_at, PDO::PARAM_STR);
-        $statement->bindValue(':updated_at', $user->updated_at, PDO::PARAM_STR);
-        $statement->execute();
-        
-        return $this->getConnection()->lastInsertId();
-    }
-
-    public function update(UserModel $user): void
-    {
-        $query = 'UPDATE users 
-                  SET email = :email, name = :name, role = :role, updated_at = :updated_at';
-        
-        if (!empty($user->password)) {
-            $query .= ', password = :password';
+        foreach ($rows as $row) {
+            $users[] = new UserModel($row);
         }
-        
-        $query .= ' WHERE id = :id';
-        
-        $statement = $this->getConnection()->prepare($query);
-        $statement->bindValue(':email', $user->email, PDO::PARAM_STR);
-        $statement->bindValue(':name', $user->name, PDO::PARAM_STR);
-        $statement->bindValue(':role', $user->role, PDO::PARAM_STR);
-        $statement->bindValue(':updated_at', $user->updated_at, PDO::PARAM_STR);
-        
-        if (!empty($user->password)) {
-            $statement->bindValue(':password', $user->password, PDO::PARAM_STR);
-        }
-        
-        $statement->bindValue(':id', $user->id, PDO::PARAM_INT);
-        $statement->execute();
+
+        return $users;
     }
 
-    public function delete(int $id): void
+    public function findById(int $id): ?UserModel
     {
-        $query = 'DELETE FROM users WHERE id = :id';
-        
-        $statement = $this->getConnection()->prepare($query);
-        $statement->bindValue(':id', $id, PDO::PARAM_INT);
-        $statement->execute();
+        $sql = 'SELECT id, name, email, password_hash, role, created_at FROM users WHERE id = :id LIMIT 1';
+        $stmt = $this->getConnection()->prepare($sql);
+        $stmt->execute([':id' => $id]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return null;
+        }
+
+        return new UserModel($row);
+    }
+
+    public function findByEmail(string $email): ?UserModel
+    {
+        $sql = 'SELECT id, name, email, password_hash, role, created_at FROM users WHERE email = :email LIMIT 1';
+        $stmt = $this->getConnection()->prepare($sql);
+        $stmt->execute([':email' => $email]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return null;
+        }
+
+        return new UserModel($row);
+    }
+
+    public function create(array $data): int
+    {
+        $sql = 'INSERT INTO users (name, email, password_hash, role, created_at)
+                VALUES (:name, :email, :password_hash, :role, NOW())';
+
+        $stmt = $this->getConnection()->prepare($sql);
+
+        $stmt->execute([
+            ':name' => $data['name'] ?? '',
+            ':email' => $data['email'] ?? '',
+            ':password_hash' => $data['password_hash'] ?? '',
+            ':role' => $data['role'] ?? 'player'
+        ]);
+
+        return (int)$this->getConnection()->lastInsertId();
+    }
+
+    public function updateRole(int $userId, string $role): bool
+    {
+        $allowedRoles = ['player', 'creator', 'admin'];
+        if (!in_array($role, $allowedRoles, true)) {
+            return false;
+        }
+
+        $sql = 'UPDATE users SET role = :role WHERE id = :id';
+        $stmt = $this->getConnection()->prepare($sql);
+
+        return $stmt->execute([
+            ':role' => $role,
+            ':id' => $userId
+        ]);
     }
 }

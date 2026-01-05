@@ -3,36 +3,23 @@
 namespace App\Controllers;
 
 use App\Services\IAuthService;
-use App\Services\AuthService;
 
 class AuthController
 {
     private IAuthService $authService;
 
-    public function __construct(IAuthService $authService) {
-        
+    public function __construct(IAuthService $authService)
+    {
         $this->authService = $authService;
     }
 
-    public function showLogin(array $vars = []): void
+    public function showLogin(): void
     {
-        // Redirect if already logged in
-        if ($this->authService->isLoggedIn()) {
-            header('Location: /');
-            exit;
-        }
-        
         require __DIR__ . '/../Views/auth/login.php';
     }
 
-    public function showRegister(array $vars = []): void
+    public function showRegister(): void
     {
-        // Redirect if already logged in
-        if ($this->authService->isLoggedIn()) {
-            header('Location: /');
-            exit;
-        }
-        
         require __DIR__ . '/../Views/auth/register.php';
     }
 
@@ -40,53 +27,42 @@ class AuthController
     {
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
-        
+
         $user = $this->authService->login($email, $password);
-        
-        if ($user) {
-            // Login successful
-            $_SESSION['success_message'] = 'Welcome back, ' . $user->name . '!';
-            header('Location: /');
-            exit;
-        } else {
-            // Login failed
+
+        if ($user === null) {
             $_SESSION['error_message'] = 'Invalid email or password.';
-            header('Location: /login');
+            header('Location: /rooms');
             exit;
         }
+
+        $_SESSION['success_message'] = 'Welcome back, ' . $user->name . '!';
+        header('Location: /');
+        exit;
     }
 
     public function register(array $vars = []): void
     {
         try {
-            // Validate password confirmation
-            if ($_POST['password'] !== $_POST['confirm_password']) {
-                throw new \InvalidArgumentException('Passwords do not match.');
-            }
-            
-            $userId = $this->authService->register($_POST);
-            
-            // Auto-login after registration
-            $this->authService->login($_POST['email'], $_POST['password']);
-            
-            $_SESSION['success_message'] = 'Registration successful! Welcome to RoomShift.';
+            $this->authService->register($_POST);
+
+            $_SESSION['success_message'] = 'Account created successfully.';
             header('Location: /');
             exit;
-            
         } catch (\InvalidArgumentException $e) {
             $_SESSION['error_message'] = $e->getMessage();
             $_SESSION['form_data'] = $_POST;
+
             header('Location: /register');
             exit;
         }
     }
 
-    public function logout(array $vars = []): void
+    public function logout(): void
     {
         $this->authService->logout();
-        
-        $_SESSION['success_message'] = 'You have been logged out successfully.';
-        header('Location: /');
+
+        header('Location: /login');
         exit;
     }
 }
