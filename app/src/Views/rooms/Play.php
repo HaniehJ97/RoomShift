@@ -1,22 +1,22 @@
 <?php
-$pageTitle = $room->title . ' - Play';
+$pageTitle = isset($room) && $room ? htmlspecialchars($room->title) . ' - Play' : 'Play Room';
 require __DIR__ . '/../Partials/header.php';
-$levelConfig = $room->level_config;
+
+// Get level configuration from room
+if (isset($room) && $room && isset($room->level_config)) {
+    $levelConfig = $room->level_config;
+    $gridWidth = (int)($levelConfig['grid_width'] ?? 12);
+    $gridHeight = (int)($levelConfig['grid_height'] ?? 12);
+    $difficulty = $room->difficulty ?? 'easy';
+    $configJson = json_encode($levelConfig);
+} else {
+    // Default values if room doesn't exist
+    $gridWidth = 12;
+    $gridHeight = 12;
+    $difficulty = 'easy';
+    $configJson = '{"walls":[],"bombs":[],"key":{"x":0,"y":0},"door":{"x":11,"y":11}}';
+}
 ?>
-
-<script>
-window.roomLevelData = {
-    gridWidth: <?= $levelConfig['grid_width'] ?>,
-    gridHeight: <?= $levelConfig['grid_height'] ?>,
-    config: <?= json_encode($levelConfig) ?>,
-    hideSecrets: true
-};
-</script>
-
-<!-- $gridW = (int)($levelConfig['grid_width'] ?? 12);
-$gridH = (int)($levelConfig['grid_height'] ?? 12);
-$difficulty = $levelConfig['difficulty'] ?? 'easy';
-$configJson = json_encode($levelConfig);?> -->
 
 <div class="container py-5">
     <?php if (!isset($room) || !$room): ?>
@@ -73,7 +73,7 @@ $configJson = json_encode($levelConfig);?> -->
                     <div class="card-body">
                         <h5 class="text-white mb-2">Room Info</h5>
                         <p class="text-white opacity-75 mb-3">
-                            <?= nl2br(htmlspecialchars($room->description)) ?>
+                            <?= nl2br(htmlspecialchars($room->description ?? '')) ?>
                         </p>
                         <p class="text-white opacity-75 mb-0">
                             Estimated time: <?= (int)($room->estimated_time ?? 30) ?> min
@@ -83,10 +83,14 @@ $configJson = json_encode($levelConfig);?> -->
             </div>
         </div>
 
-            <script>
-            window.roomLevelData = <?= json_encode($levelData) ?>;
-            window.roomLevelData.hideSecrets = true;
-             </script>   
+        <script>
+        window.roomLevelData = {
+            gridWidth: <?= $gridWidth ?>,
+            gridHeight: <?= $gridHeight ?>,
+            config: <?= $configJson ?>,
+            hideSecrets: true
+        };
+        </script>   
         <script src="/assets/js/snake.js"></script>
 
     <?php endif; ?>
