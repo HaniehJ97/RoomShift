@@ -69,11 +69,13 @@ $routeInfo = $dispatcher->dispatch($httpMethod, $uri);
 // create repositories
 $userRepository = new \App\Repositories\UserRepository();
 $roomRepository = new \App\Repositories\RoomRepository();
+$roomLevelRepository = new \App\Repositories\RoomLevelRepository();
 
 // create services
 $authService = new \App\Services\AuthService($userRepository);
 $roomService = new \App\Services\RoomService($roomRepository);
 $adminService = new \App\Services\AdminService($userRepository, $roomRepository);
+$roomLevelService = new \App\Services\RoomLevelService($roomLevelRepository);
 
 // handle request
 switch ($routeInfo[0]) {
@@ -94,7 +96,7 @@ switch ($routeInfo[0]) {
         // create controller
         $controller = match ($class) {
             'App\Controllers\RoomController' =>
-                new \App\Controllers\RoomController($authService, $roomService, $adminService),
+               new \App\Controllers\RoomController($authService, $roomService, $adminService, $roomLevelService),
 
             'App\Controllers\AuthController' =>
                 new \App\Controllers\AuthController($authService),

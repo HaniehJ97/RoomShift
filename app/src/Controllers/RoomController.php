@@ -5,22 +5,26 @@ namespace App\Controllers;
 use App\Services\IAuthService;
 use App\Services\IRoomService;
 use App\Services\IAdminService;
+use App\Services\IRoomLevelService;
 
 class RoomController
 {
     private IAuthService $authService;
     private IRoomService $roomService;
     private IAdminService $adminService;
+    private IRoomLevelService $roomLevelService;
 
     public function __construct(
-        IAuthService $authService,
-        IRoomService $roomService,
-        IAdminService $adminService
-    ) {
-        $this->authService = $authService;
-        $this->roomService = $roomService;
-        $this->adminService = $adminService;
-    }
+    IAuthService $authService,
+    IRoomService $roomService,
+    IAdminService $adminService,
+    IRoomLevelService $roomLevelService
+) {
+    $this->authService = $authService;
+    $this->roomService = $roomService;
+    $this->adminService = $adminService;
+    $this->roomLevelService = $roomLevelService;
+}
 
     private function requireLogin(): void
     {
@@ -89,6 +93,16 @@ class RoomController
         $_SESSION['error_message'] = 'Room not found.';
         header('Location: /rooms');
         exit;
+        }
+        $level = $this->roomLevelService->getByRoomId($roomId);
+
+        if (!$level) {
+            $level = [
+                'grid_width' => 12,
+                'grid_height' => 12,
+                'difficulty' => 'easy',
+                'config_json' => '{"walls":[],"bombs":[],"foods":[]}'
+            ];
         }
 
         require __DIR__ . '/../Views/rooms/play.php';
@@ -278,6 +292,65 @@ class RoomController
             $success ? 'Room status updated successfully.' : 'Failed to update room status.';
 
         header('Location: /admin/rooms');
+        exit;
+    }
+    // -----------------------------
+    // LEVELUP
+    // -----------------------------
+        public function levelEditor(array $vars = []): void
+    {
+        $this->requireCreator();
+
+        $roomId = (int)($vars['id'] ?? 0);
+        $room = $this->roomService->getRoomById($roomId);
+
+        if (!$room) {
+            $_SESSION['error_message'] = 'Room not found.';
+            header('Location: /creator/rooms');
+            exit;
+        }
+
+        if ($room->creator_id !== (int)($_SESSION['user_id'] ?? 0) && !$this->authService->isAdmin()) {
+            $_SESSION['error_message'] = 'You can only edit your own rooms.';
+            header('Location: /creator/rooms');
+            exit;
+        }
+
+        $level = $this->roomLevelService->getByRoomId($roomId);
+
+        require __DIR__ . '/../Views/creator/level.php';
+    }
+
+    public function saveLevel(array $vars = []): void
+    {
+        $this->requireCreator();
+
+        $roomId = (int)($vars['id'] ?? 0);
+        $room = $this->roomService->getRoomById($roomId);
+
+        if (!$room) {
+            $_SESSION['error_message'] = 'Room not found.';
+            header('Location: /creator/rooms');
+            exit;
+        }
+
+        if ($room->creator_id !== (int)($_SESSION['user_id'] ?? 0) && !$this->authService->isAdmin()) {
+            $_SESSION['error_message'] = 'You can only edit your own rooms.';
+            header('Location: /creator/rooms');
+            exit;
+        }
+
+        $gridW = (int)($_POST['grid_width'] ?? 12);
+        $gridH = (int)($_POST['grid_height'] ?? 12);
+        $difficulty = $_POST['difficulty'] ?? 'easy';
+        $configJson = $_POST['config_json'] ?? '{"walls":[],"bombs":[],"foods":[]}';
+
+        $ok = $this->roomLevelService->saveLevel($roomId, $gridW, $gridH, $difficulty, $configJson);
+
+        $_SESSION[$ok ? 'success_message' : 'error_message'] =
+            $ok ? 'Level saved.' : 'Level could not be saved.';
+
+        header('Location: /creator/rooms/' . $roomId . '/level');
         exit;
     }
 }
