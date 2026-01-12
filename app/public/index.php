@@ -42,9 +42,7 @@ $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('GET',  '/creator/rooms/{id:\d+}/edit', ['App\Controllers\RoomController', 'editRoomForm']);
     $r->addRoute('POST', '/creator/rooms/{id:\d+}/edit', ['App\Controllers\RoomController', 'updateRoom']);
     $r->addRoute('POST', '/creator/rooms/{id:\d+}/delete', ['App\Controllers\RoomController', 'deleteRoom']);
-    $r->addRoute('GET',  '/creator/rooms/{id:\d+}/level', ['App\Controllers\RoomController', 'levelEditor']);
-    $r->addRoute('POST', '/creator/rooms/{id:\d+}/level', ['App\Controllers\RoomController', 'saveLevel']);
-
+    
     // admin
     $r->addRoute('GET',  '/admin', ['App\Controllers\RoomController', 'adminDashboard']);
     $r->addRoute('GET',  '/admin/users', ['App\Controllers\RoomController', 'adminUsers']);
@@ -66,16 +64,14 @@ $uri = rawurldecode($uri);
 // match route
 $routeInfo = $dispatcher->dispatch($httpMethod, $uri);
 
-// create repositories
-$userRepository = new \App\Repositories\UserRepository();
+// SIMPLIFIED: create only the repositories we need
 $roomRepository = new \App\Repositories\RoomRepository();
-$roomLevelRepository = new \App\Repositories\RoomLevelRepository();
+$userRepository = new \App\Repositories\UserRepository();
 
-// create services
+// SIMPLIFIED: create only the services we need
 $authService = new \App\Services\AuthService($userRepository);
 $roomService = new \App\Services\RoomService($roomRepository);
 $adminService = new \App\Services\AdminService($userRepository, $roomRepository);
-$roomLevelService = new \App\Services\RoomLevelService($roomLevelRepository);
 
 // handle request
 switch ($routeInfo[0]) {
@@ -93,10 +89,14 @@ switch ($routeInfo[0]) {
         [$class, $method] = $routeInfo[1];
         $vars = $routeInfo[2];
 
-        // create controller
+        // create controller (SIMPLIFIED!)
         $controller = match ($class) {
             'App\Controllers\RoomController' =>
-               new \App\Controllers\RoomController($authService, $roomService, $adminService, $roomLevelService),
+                new \App\Controllers\RoomController(
+                    $authService,
+                    $roomService,
+                    $adminService  // Only 3 services now, not 4!
+                ),
 
             'App\Controllers\AuthController' =>
                 new \App\Controllers\AuthController($authService),

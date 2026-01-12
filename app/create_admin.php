@@ -21,13 +21,12 @@ try {
     // Create admin user model
     $admin = new UserModel([
         'email' => 'admin@roomshift.com',
-        'password' => 'admin123', // Will be hashed
         'name' => 'Administrator',
         'role' => 'admin'
     ]);
     
     // Hash the password
-    $admin->hashPassword();
+    $admin->setPassword('admin123');
     
     // Check if admin already exists
     $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email");
@@ -37,9 +36,9 @@ try {
         echo "⚠️  Admin user already exists. Updating password...\n";
         
         // Update existing admin
-        $updateStmt = $pdo->prepare("UPDATE users SET password = :password WHERE email = :email");
+        $updateStmt = $pdo->prepare("UPDATE users SET password_hash = :password WHERE email = :email");
         $updateStmt->execute([
-            ':password' => $admin->password,
+            ':password' => $admin->password_hash,
             ':email' => 'admin->email'
         ]);
         
@@ -47,13 +46,13 @@ try {
     } else {
         // Insert new admin
         $insertStmt = $pdo->prepare("
-            INSERT INTO users (email, password, name, role, created_at, updated_at) 
+            INSERT INTO users (email, password_hash, name, role, created_at, updated_at) 
             VALUES (:email, :password, :name, :role, NOW(), NOW())
         ");
         
         $insertStmt->execute([
             ':email' => $admin->email,
-            ':password' => $admin->password,
+            ':password' => $admin->password_hash,
             ':name' => $admin->name,
             ':role' => $admin->role
         ]);

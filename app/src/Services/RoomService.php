@@ -37,15 +37,30 @@ class RoomService implements IRoomService
     public function createRoom(array $roomData): int
     {
         $room = new RoomModel($roomData);
-        $room->validate();
+
+        try {
+            $room->validate();
+        } catch (\InvalidArgumentException $e) {
+            return 0;
+        }
 
         return $this->roomRepository->create($room);
     }
-
-    public function updateRoom(RoomModel $room): void
+    
+    public function createRoomReturnId(array $roomData): int
     {
-        $room->validate();
-        $this->roomRepository->update($room);
+        return $this->createRoom($roomData);
+    }
+
+    public function updateRoom(RoomModel $room): bool
+    {
+        try {
+            $room->validate();
+        } catch (\InvalidArgumentException $e) {
+            return false;
+        }
+
+        return $this->roomRepository->update($room);
     }
 
     public function deleteRoom(int $id): void

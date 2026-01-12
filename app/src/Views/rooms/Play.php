@@ -1,12 +1,22 @@
 <?php
-$pageTitle = isset($room) && $room ? $room->title . ' - Play' : 'Play Room';
+$pageTitle = $room->title . ' - Play';
 require __DIR__ . '/../Partials/header.php';
-
-$gridW = (int)($level['grid_width'] ?? 12);
-$gridH = (int)($level['grid_height'] ?? 12);
-$difficulty = $level['difficulty'] ?? 'easy';
-$configJson = $level['config_json'] ?? '{"walls":[],"bombs":[],"foods":[]}';
+$levelConfig = $room->level_config;
 ?>
+
+<script>
+window.roomLevelData = {
+    gridWidth: <?= $levelConfig['grid_width'] ?>,
+    gridHeight: <?= $levelConfig['grid_height'] ?>,
+    config: <?= json_encode($levelConfig) ?>,
+    hideSecrets: true
+};
+</script>
+
+<!-- $gridW = (int)($levelConfig['grid_width'] ?? 12);
+$gridH = (int)($levelConfig['grid_height'] ?? 12);
+$difficulty = $levelConfig['difficulty'] ?? 'easy';
+$configJson = json_encode($levelConfig);?> -->
 
 <div class="container py-5">
     <?php if (!isset($room) || !$room): ?>
@@ -73,14 +83,10 @@ $configJson = $level['config_json'] ?? '{"walls":[],"bombs":[],"foods":[]}';
             </div>
         </div>
 
-        <script>
-            window.roomLevelData = {
-                gridWidth: <?= (int)$gridW ?>,
-                gridHeight: <?= (int)$gridH ?>,
-                difficulty: <?= json_encode($difficulty) ?>,
-                config: <?= $configJson ?>
-            };
-        </script>
+            <script>
+            window.roomLevelData = <?= json_encode($levelData) ?>;
+            window.roomLevelData.hideSecrets = true;
+             </script>   
         <script src="/assets/js/snake.js"></script>
 
     <?php endif; ?>

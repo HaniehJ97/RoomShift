@@ -13,7 +13,9 @@
 
                 <div class="d-flex gap-3 mt-4">
                     <?php if (isset($_SESSION['user_id']) && in_array($_SESSION['user_role'], ['creator', 'admin'])): ?>
-                        <a href="/creator/rooms" class="btn btn-light btn-lg">Create Room</a>
+                        <a href="/creator/rooms" class="btn btn-light btn-lg px-4 py-3 fw-semibold">
+                        <i class="bi bi-plus-circle me-2"></i>Create Room
+                        </a>
                     <?php endif; ?>
 
                     <a href="/rooms" class="btn btn-outline-light btn-lg">Browse Rooms</a>
