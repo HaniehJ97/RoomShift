@@ -34,10 +34,10 @@
                 </button>
             </form>
 
-            <p class="mt-3 text-center mb-0">
-                Don’t have an account?
-                <a href="/register">Register here</a>
-            </p>
+            <p class="mt-3 text-center mb-0 text-light">
+            Don't have an account?
+            <a href="/register" class="text-warning">Register here</a>
+             </p>
 
         </div>
     </div>

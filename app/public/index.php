@@ -24,7 +24,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 // define routes
 $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
-    // rooms
+    // rooms (player)
     $r->addRoute('GET', '/', ['App\Controllers\RoomController', 'index']);
     $r->addRoute('GET', '/rooms', ['App\Controllers\RoomController', 'index']);
     $r->addRoute('GET', '/rooms/{id:\d+}/play', ['App\Controllers\RoomController', 'play']);
@@ -36,19 +36,19 @@ $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('POST', '/register', ['App\Controllers\AuthController', 'register']);
     $r->addRoute('GET',  '/logout',   ['App\Controllers\AuthController', 'logout']);
 
-    // creator 
-    $r->addRoute('GET',  '/creator/rooms', ['App\Controllers\RoomController', 'creatorRooms']);
-    $r->addRoute('POST', '/creator/rooms', ['App\Controllers\RoomController', 'createRoom']);
-    $r->addRoute('GET',  '/creator/rooms/{id:\d+}/edit', ['App\Controllers\RoomController', 'editRoomForm']);
-    $r->addRoute('POST', '/creator/rooms/{id:\d+}/edit', ['App\Controllers\RoomController', 'updateRoom']);
-    $r->addRoute('POST', '/creator/rooms/{id:\d+}/delete', ['App\Controllers\RoomController', 'deleteRoom']);
+    // admin dashboard & users
+    $r->addRoute('GET',  '/admin', ['App\Controllers\AdminController', 'dashboard']);
+    $r->addRoute('GET',  '/admin/users', ['App\Controllers\AdminController', 'users']);
+    $r->addRoute('POST', '/admin/users/{id:\d+}/role', ['App\Controllers\AdminController', 'updateUserRole']);
     
-    // admin
-    $r->addRoute('GET',  '/admin', ['App\Controllers\RoomController', 'adminDashboard']);
-    $r->addRoute('GET',  '/admin/users', ['App\Controllers\RoomController', 'adminUsers']);
-    $r->addRoute('POST', '/admin/users/{id:\d+}/role', ['App\Controllers\RoomController', 'updateUserRole']);
-    $r->addRoute('GET',  '/admin/rooms', ['App\Controllers\RoomController', 'adminRooms']);
-    $r->addRoute('POST', '/admin/rooms/{id:\d+}/publish', ['App\Controllers\RoomController', 'toggleRoomPublish']);
+    // admin rooms management
+    $r->addRoute('GET',  '/admin/rooms', ['App\Controllers\AdminController', 'rooms']);
+    $r->addRoute('GET',  '/admin/rooms/create', ['App\Controllers\AdminController', 'createForm']);
+    $r->addRoute('POST', '/admin/rooms', ['App\Controllers\AdminController', 'createRoom']);
+    $r->addRoute('GET',  '/admin/rooms/{id:\d+}/edit', ['App\Controllers\AdminController', 'editRoomForm']);
+    $r->addRoute('POST', '/admin/rooms/{id:\d+}/edit', ['App\Controllers\AdminController', 'updateRoom']);
+    $r->addRoute('POST', '/admin/rooms/{id:\d+}/delete', ['App\Controllers\AdminController', 'deleteRoom']);
+    $r->addRoute('POST', '/admin/rooms/{id:\d+}/publish', ['App\Controllers\AdminController', 'toggleRoomPublish']);
 });
 
 // get request data
@@ -64,11 +64,11 @@ $uri = rawurldecode($uri);
 // match route
 $routeInfo = $dispatcher->dispatch($httpMethod, $uri);
 
-// SIMPLIFIED: create only the repositories we need
+// create repositories
 $roomRepository = new \App\Repositories\RoomRepository();
 $userRepository = new \App\Repositories\UserRepository();
 
-// SIMPLIFIED: create only the services we need
+// create services
 $authService = new \App\Services\AuthService($userRepository);
 $roomService = new \App\Services\RoomService($roomRepository);
 $adminService = new \App\Services\AdminService($userRepository, $roomRepository);
@@ -89,22 +89,31 @@ switch ($routeInfo[0]) {
         [$class, $method] = $routeInfo[1];
         $vars = $routeInfo[2];
 
-        // create controller (SIMPLIFIED!)
+        // create controller
         $controller = match ($class) {
             'App\Controllers\RoomController' =>
-                new \App\Controllers\RoomController(
-                    $authService,
-                    $roomService,
-                    $adminService  // Only 3 services now, not 4!
-                ),
+                new \App\Controllers\RoomController($authService, $roomService),
 
             'App\Controllers\AuthController' =>
                 new \App\Controllers\AuthController($authService),
 
-            default => throw new Exception('Controller not found')
+            'App\Controllers\AdminController' =>
+                new \App\Controllers\AdminController($authService, $adminService, $roomService),
+
+            default => throw new Exception('Controller not found: ' . $class)
         };
 
         // call controller method
-        $controller->$method($vars);
+        try {
+            $controller->$method($vars);
+        } catch (Throwable $e) {
+            // Log error and show friendly message
+            error_log('Controller error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            http_response_code(500);
+            echo '500 - Internal Server Error';
+            if (ini_get('display_errors')) {
+                echo '<pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
+            }
+        }
         break;
 }

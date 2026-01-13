@@ -63,7 +63,7 @@ class UserRepository extends Repository implements IUserRepository
             ':name' => $data['name'] ?? '',
             ':email' => $data['email'] ?? '',
             ':password_hash' => $data['password_hash'] ?? '',
-            ':role' => $data['role'] ?? 'player'
+            ':role' => $data['role'] ?? UserModel::ROLE_PLAYER
         ]);
 
         return (int)$this->getConnection()->lastInsertId();
@@ -71,7 +71,7 @@ class UserRepository extends Repository implements IUserRepository
 
     public function updateRole(int $userId, string $role): bool
     {
-        $allowedRoles = ['player', 'creator', 'admin'];
+        $allowedRoles = ['player', 'admin'];
         if (!in_array($role, $allowedRoles, true)) {
             return false;
         }
@@ -83,5 +83,14 @@ class UserRepository extends Repository implements IUserRepository
             ':role' => $role,
             ':id' => $userId
         ]);
+    }
+    public function getUserNameById(int $id): ?string
+    {
+        $sql = 'SELECT name FROM users WHERE id = :id LIMIT 1';
+        $stmt = $this->getConnection()->prepare($sql);
+        $stmt->execute([':id' => $id]);
+        
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? $row['name'] : null;
     }
 }

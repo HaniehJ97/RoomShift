@@ -10,21 +10,22 @@ class RoomRepository extends Repository implements IRoomRepository
 {
     public function getAll(): array
     {
-        $query = 'SELECT id, title, description, creator_id, is_published, 
-                         difficulty, estimated_time, level_config,
-                         created_at, updated_at 
-                  FROM rooms 
-                  ORDER BY created_at DESC';
-        
-        $statement = $this->getConnection()->query($query);
-        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Convert each row to RoomModel with proper JSON decoding
+        $sql = 'SELECT id, title, description, creator_id, difficulty, estimated_time, 
+        is_published, created_at, level_config FROM rooms ORDER BY created_at DESC';
+        $stmt = $this->getConnection()->prepare($sql);
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $rooms = [];
+
         foreach ($rows as $row) {
+            // Decode level_config if it's stored as JSON
+            if (isset($row['level_config']) && is_string($row['level_config'])) {
+                $row['level_config'] = json_decode($row['level_config'], true);
+            }
             $rooms[] = new RoomModel($row);
         }
-        
+
         return $rooms;
     }
 

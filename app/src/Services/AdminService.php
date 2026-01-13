@@ -40,9 +40,25 @@ class AdminService implements IAdminService
 
     public function getDashboardStats(): array
     {
+        $allUsers = $this->userRepository->getAll();
+        $allRooms = $this->roomRepository->getAll();
+        
+        // Count published rooms
+        $publishedRooms = 0;
+        foreach ($allRooms as $room) {
+            if ($room->is_published) {
+                $publishedRooms++;
+            }
+        }
+        
+        // For now, active games can be 0 or you can implement tracking
+        $activeGames = 0;
+        
         return [
-            'users' => count($this->userRepository->getAll()),
-            'rooms' => count($this->roomRepository->getAll())
+            'user_count' => count($allUsers),
+            'room_count' => count($allRooms),
+            'published_rooms' => $publishedRooms,
+            'active_games' => $activeGames
         ];
     }
 }

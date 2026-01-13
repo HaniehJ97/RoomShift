@@ -13,7 +13,6 @@ class UserModel
     public string $updated_at;
 
     public const ROLE_PLAYER = 'player';
-    public const ROLE_CREATOR = 'creator';
     public const ROLE_ADMIN = 'admin';
 
     public function __construct(array $data = [])
@@ -48,7 +47,7 @@ class UserModel
             throw new \InvalidArgumentException('Name must be at least 2 characters long.');
         }
 
-        $validRoles = [self::ROLE_PLAYER, self::ROLE_CREATOR, self::ROLE_ADMIN];
+        $validRoles = [self::ROLE_PLAYER, self::ROLE_ADMIN];
         if (!in_array($this->role, $validRoles, true)) {
             $this->role = self::ROLE_PLAYER;
         }

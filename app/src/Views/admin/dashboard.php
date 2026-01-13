@@ -70,7 +70,7 @@
                         </a>
                     </div>
                     <div class="col-md-3">
-                        <a href="/creator/rooms/create" class="btn btn-outline-success w-100">
+                        <a href="/admin/rooms/create" class="btn btn-outline-success w-100">
                             <i class="bi bi-plus-circle me-2"></i>Create Room
                         </a>
                     </div>

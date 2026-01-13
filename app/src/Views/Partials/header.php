@@ -47,10 +47,11 @@
                                 <li><hr class="dropdown-divider"></li>
                             <?php endif; ?>
 
-                            <?php if (($_SESSION['user_role'] ?? '') === 'creator' || ($_SESSION['user_role'] ?? '') === 'admin'): ?>
-                                <li><a class="dropdown-item" href="/creator/rooms">My Rooms</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                            <?php endif; ?>
+                            <?php if (isset($_SESSION['user_id']) && $_SESSION['user_role'] === 'admin'): ?>
+                            <li class="nav-item">
+                                <a class="dropdown-item" href="/admin/rooms">Manage Rooms</a>
+                            </li>
+                          <?php endif; ?>
 
                             <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
                         </ul>

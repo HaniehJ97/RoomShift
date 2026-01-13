@@ -38,27 +38,27 @@ class AuthService implements IAuthService
     }
 
     public function register(array $data): int
-{
-    $user = new UserModel([
-        'email' => $data['email'] ?? '',
-        'name'  => $data['name'] ?? '',
-        'role'  => UserModel::ROLE_PLAYER
-    ]);
+    {
+        $user = new UserModel([
+            'email' => $data['email'] ?? '',
+            'name'  => $data['name'] ?? '',
+            'role'  => UserModel::ROLE_PLAYER
+        ]);
 
-    try {
-        $user->validate();
-        $user->setPassword($data['password'] ?? '');
-    } catch (\InvalidArgumentException $e) {
-        return 0;
+        try {
+            $user->validate();
+            $user->setPassword($data['password'] ?? '');
+        } catch (\InvalidArgumentException $e) {
+            return 0;
+        }
+
+        return $this->userRepository->create([
+            'email'         => $user->email,
+            'name'          => $user->name,
+            'password_hash' => $user->password_hash,
+            'role'          => $user->role
+        ]);
     }
-
-    return $this->userRepository->create([
-        'email'         => $user->email,
-        'name'          => $user->name,
-        'password_hash' => $user->password_hash,
-        'role'          => $user->role
-    ]);
-}
 
     public function logout(): void
     {
