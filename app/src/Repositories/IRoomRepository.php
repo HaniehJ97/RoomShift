@@ -15,4 +15,5 @@ interface IRoomRepository
     public function getRoomsByCreator(int $creatorId): array;
     public function togglePublish(int $roomId, bool $publish): bool;
     public function createRoomReturnId(RoomModel $room): int;
+    
 }

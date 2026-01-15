@@ -45,12 +45,8 @@ class AuthService implements IAuthService
             'role'  => UserModel::ROLE_PLAYER
         ]);
 
-        try {
-            $user->validate();
-            $user->setPassword($data['password'] ?? '');
-        } catch (\InvalidArgumentException $e) {
-            return 0;
-        }
+        $user->validate();
+        $user->setPassword($data['password'] ?? '');
 
         return $this->userRepository->create([
             'email'         => $user->email,
