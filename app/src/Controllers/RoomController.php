@@ -76,8 +76,6 @@ class RoomController
     }
     private function getCreatorName(int $creatorId): string
     {
-        // You need to implement this method or add it to your services
-        // For now, you can return "User {id}" or fetch from database
         return "User " . $creatorId;
     }
 }

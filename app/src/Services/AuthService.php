@@ -39,13 +39,14 @@ class AuthService implements IAuthService
 
     public function register(array $data): int
     {
+        $this->validateRegistrationData($data);
+        
         $user = new UserModel([
             'email' => $data['email'] ?? '',
             'name'  => $data['name'] ?? '',
             'role'  => UserModel::ROLE_PLAYER
         ]);
 
-        $user->validate();
         $user->setPassword($data['password'] ?? '');
 
         return $this->userRepository->create([
@@ -56,6 +57,34 @@ class AuthService implements IAuthService
         ]);
     }
 
+    private function validateRegistrationData(array $data): void
+    {
+        $email = trim($data['email'] ?? '');
+        $name = trim($data['name'] ?? '');
+        $password = trim($data['password'] ?? '');
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException('Invalid email address.');
+        }
+
+        if (empty($name)) {
+            throw new \InvalidArgumentException('Name is required.');
+        }
+
+        if (strlen($name) < 2) {
+            throw new \InvalidArgumentException('Name must be at least 2 characters long.');
+        }
+
+        if (empty($password)) {
+            throw new \InvalidArgumentException('Password is required.');
+        }
+
+        if (strlen($password) < 6) {
+            throw new \InvalidArgumentException('Password must be at least 6 characters long.');
+        }
+    }
+
+    // ... rest of the methods remain the same
     public function logout(): void
     {
         $_SESSION = [];

@@ -1,3 +1,4 @@
+
 <?php
 
 namespace App\Models;
@@ -30,42 +31,12 @@ class UserModel
         $this->updated_at = $data['updated_at'] ?? date('Y-m-d H:i:s');
     }
 
-    public function validate(): void
-    {
-        $email = trim($this->email);
-        $name = trim($this->name);
-
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException('Invalid email address.');
-        }
-
-        if (empty($name)) {
-            throw new \InvalidArgumentException('Name is required.');
-        }
-
-        if (strlen($name) < 2) {
-            throw new \InvalidArgumentException('Name must be at least 2 characters long.');
-        }
-
-        $validRoles = [self::ROLE_PLAYER, self::ROLE_ADMIN];
-        if (!in_array($this->role, $validRoles, true)) {
-            $this->role = self::ROLE_PLAYER;
-        }
-    }
+    // REMOVED validate() method
 
     public function setPassword(string $plainPassword): void
     {
-        $plainPassword = trim($plainPassword);
-
-        if ($plainPassword === '') {
-            throw new \InvalidArgumentException('Password is required.');
-        }
-
-        if (strlen($plainPassword) < 6) {
-            throw new \InvalidArgumentException('Password must be at least 6 characters long.');
-        }
-
-        $this->password_hash = password_hash($plainPassword, PASSWORD_DEFAULT);
+        // Just hash the password, validation moved to service
+        $this->password_hash = password_hash(trim($plainPassword), PASSWORD_DEFAULT);
     }
 
     public function verifyPassword(string $plainPassword): bool
