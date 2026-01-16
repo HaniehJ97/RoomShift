@@ -4,18 +4,22 @@ namespace App\Controllers;
 
 use App\Services\IAuthService;
 use App\Services\IRoomService;
+use App\Services\IUserService;
 
 class RoomController
 {
     private IAuthService $authService;
     private IRoomService $roomService;
+    private IUserService $userService;
 
     public function __construct(
         IAuthService $authService,
-        IRoomService $roomService
+        IRoomService $roomService,
+        IUserService $userService
     ) {
         $this->authService = $authService;
         $this->roomService = $roomService;
+        $this->userService = $userService;
     }
 
     private function requireLogin(): void
@@ -48,7 +52,7 @@ class RoomController
         require __DIR__ . '/../Views/rooms/index.php';
     }
 
-        public function play(array $vars = []): void
+    public function play(array $vars = []): void
     {
         $this->requireLogin();
 
@@ -61,21 +65,20 @@ class RoomController
             exit;
         }
 
-        // Only admins can play unpublished rooms
-        if (!$room->is_published && !$this->authService->isAdmin()) {
+        // Check if user can access this room
+        $userId = $this->authService->getCurrentUser()?->id ?? 0;
+        $isAdmin = $this->authService->isAdmin();
+        
+        if (!$this->roomService->canUserAccessRoom($userId, $room, $isAdmin)) {
             $_SESSION['error_message'] = 'This room is not published yet.';
             header('Location: /rooms');
             exit;
         }
 
-        // Get creator name 
-        $creatorName = $this->getCreatorName($room->creator_id);
+        // Get creator name using UserService
+        $creatorName = $this->userService->getUserName($room->creator_id);
         
         // Pass data to view
         require __DIR__ . '/../Views/rooms/play.php';
-    }
-    private function getCreatorName(int $creatorId): string
-    {
-        return "User " . $creatorId;
     }
 }

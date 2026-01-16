@@ -156,5 +156,85 @@ class RoomService implements IRoomService
     public function togglePublish(int $roomId, bool $publish): bool
     {
         return $this->roomRepository->togglePublish($roomId, $publish);
+    
+    }
+        // Update RoomService.php by adding these methods:
+    public function createRoomFromPostData(array $postData, int $creatorId): int
+    {
+        $roomData = $this->processRoomPostData($postData, $creatorId);
+        return $this->createRoom($roomData);
+    }
+
+    public function updateRoomFromPostData(int $roomId, array $postData): bool
+    {
+        $room = $this->getRoomById($roomId);
+        if (!$room) {
+            return false;
+        }
+        
+        // Update room properties
+        $room->title = $postData['title'] ?? $room->title;
+        $room->description = $postData['description'] ?? $room->description;
+        $room->difficulty = $postData['difficulty'] ?? $room->difficulty;
+        $room->estimated_time = (int)($postData['estimated_time'] ?? $room->estimated_time);
+        $room->is_published = isset($postData['is_published']) && $postData['is_published'] === '1';
+        
+        // Update level config if provided
+        if (!empty($postData['config_json'])) {
+            $config = json_decode($postData['config_json'], true);
+            if ($config) {
+                $room->level_config = array_merge($room->level_config, $config);
+            }
+        }
+        
+        return $this->updateRoom($room);
+    }
+
+    private function processRoomPostData(array $postData, int $creatorId): array
+    {
+        // Get the JSON config from the form
+        $configJson = $postData['config_json'] ?? '{}';
+        $config = json_decode($configJson, true) ?? [];
+        
+        // Ensure all required fields exist
+        $defaultConfig = [
+            'grid_width' => 12,
+            'grid_height' => 12,
+            'walls' => [],
+            'bombs' => [],
+            'key' => ['x' => 0, 'y' => 0],
+            'door' => ['x' => 11, 'y' => 11]
+        ];
+        
+        $levelConfig = array_merge($defaultConfig, $config);
+        
+        // Get grid dimensions (they might also be in separate fields)
+        $levelConfig['grid_width'] = (int)($postData['grid_width'] ?? $levelConfig['grid_width']);
+        $levelConfig['grid_height'] = (int)($postData['grid_height'] ?? $levelConfig['grid_height']);
+        
+        return [
+            'title'         => $postData['title'] ?? '',
+            'description'   => $postData['description'] ?? '',
+            'creator_id'    => $creatorId,
+            'difficulty'    => $postData['difficulty'] ?? 'easy',
+            'estimated_time'=> (int)($postData['estimated_time'] ?? 30),
+            'is_published'  => isset($postData['is_published']) && $postData['is_published'] === '1',
+            'level_config'  => $levelConfig
+        ];
+    }
+
+    public function canUserAccessRoom(int $userId, RoomModel $room, bool $isAdmin): bool
+    {
+        // Admin can access any room
+        if ($isAdmin) {
+            return true;
+        }
+        
+        // Regular users can only access published rooms
+        if (!$room->is_published) {
+            return false;
+        }
+        
+        return true;
     }
 }

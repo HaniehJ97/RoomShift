@@ -153,11 +153,17 @@ class RoomManager {
     }
     
     handleFormSubmit(event) {
-        // Optional: Submit form via AJAX instead of page reload
-        // event.preventDefault();
+        // PREVENT DEFAULT FORM SUBMISSION
+        event.preventDefault();
         
         const form = event.target;
         const formData = new FormData(form);
+        
+        // Add CSRF token if needed (assuming you have one in meta tag)
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        if (csrfToken) {
+            formData.append('csrf_token', csrfToken);
+        }
         
         // Show loading state on button
         const submitBtn = form.querySelector('button[type="submit"]');
@@ -165,24 +171,76 @@ class RoomManager {
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Creating...';
         submitBtn.disabled = true;
         
-        // If you want AJAX submission, uncomment:
-        /*
-        fetch('/rooms', {
-            method: 'POST',
-            body: formData
+        // Clear any previous error messages
+        const errorDiv = form.querySelector('.ajax-error');
+        if (errorDiv) errorDiv.remove();
+        
+        // AJAX Submission
+        fetch(form.action, {  // Use the form's action attribute
+            method: form.method,
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest' // Mark as AJAX request
+            }
         })
-        .then(response => response.text())
-        .then(html => {
-            // Handle response
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json(); // Expect JSON response
+        })
+        .then(data => {
+            // Handle successful response
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
+            
+            if (data.success) {
+                // Show success message
+                alert('Room created successfully!');
+                
+                // Option 1: Redirect to new room
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
+                // Option 2: Reset form for another room
+                else {
+                    form.reset();
+                    // Update char counter if exists
+                    if (typeof this.updateCharCount === 'function') {
+                        this.updateCharCount();
+                    }
+                }
+            } else {
+                // Show error from server
+                this.showFormError(form, data.message || 'Something went wrong');
+            }
         })
         .catch(error => {
             console.error('Error:', error);
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
+            
+            // Show error to user
+            this.showFormError(form, 'Failed to create room. Please try again.');
         });
-        */
+    }
+    
+    showFormError(form, message) {
+        // Remove existing error
+        const existingError = form.querySelector('.ajax-error');
+        if (existingError) existingError.remove();
+        
+        // Create error div
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger mt-3 ajax-error';
+        errorDiv.innerHTML = `
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            ${message}
+        `;
+        
+        // Insert after form or before submit button
+        const submitBtn = form.querySelector('button[type="submit"]');
+        form.insertBefore(errorDiv, submitBtn);
     }
     
     escapeHtml(text) {

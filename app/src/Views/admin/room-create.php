@@ -27,7 +27,7 @@
         <!-- Create Room Form -->
         <div class="card">
             <div class="card-body">
-                <form method="POST" action="/admin/rooms">
+                <form method="POST" action="/api/rooms" id="roomForm">
                     <div class="row mb-3">
                         <div class="col-md-8">
                             <label for="title" class="form-label">Room Title</label>

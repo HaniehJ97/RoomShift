@@ -19,6 +19,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Initialize CSRF token
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // autoload classes
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -49,6 +54,10 @@ $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('POST', '/admin/rooms/{id:\d+}/edit', ['App\Controllers\AdminController', 'updateRoom']);
     $r->addRoute('POST', '/admin/rooms/{id:\d+}/delete', ['App\Controllers\AdminController', 'deleteRoom']);
     $r->addRoute('POST', '/admin/rooms/{id:\d+}/publish', ['App\Controllers\AdminController', 'toggleRoomPublish']);
+
+    // API endpoints for AJAX
+    $r->addRoute('GET', '/api/rooms/{id:\d+}', ['App\Controllers\ApiController', 'getRoom']);
+    $r->addRoute('POST', '/api/rooms', ['App\Controllers\ApiController', 'createRoom']);
 });
 
 // get request data
@@ -71,7 +80,14 @@ $userRepository = new \App\Repositories\UserRepository();
 // create services
 $authService = new \App\Services\AuthService($userRepository);
 $roomService = new \App\Services\RoomService($roomRepository);
+$userService = new \App\Services\UserService($userRepository);
 $adminService = new \App\Services\AdminService($userRepository, $roomRepository);
+
+// create controller instances
+$roomController = new \App\Controllers\RoomController($authService, $roomService, $userService);
+$authController = new \App\Controllers\AuthController($authService);
+$adminController = new \App\Controllers\AdminController($authService, $adminService, $roomService, $userService);
+$apiController = new \App\Controllers\ApiController($authService, $roomService, $userService);
 
 // handle request
 switch ($routeInfo[0]) {
@@ -89,17 +105,12 @@ switch ($routeInfo[0]) {
         [$class, $method] = $routeInfo[1];
         $vars = $routeInfo[2];
 
-        // create controller
+        // create controller based on route
         $controller = match ($class) {
-            'App\Controllers\RoomController' =>
-                new \App\Controllers\RoomController($authService, $roomService),
-
-            'App\Controllers\AuthController' =>
-                new \App\Controllers\AuthController($authService),
-
-            'App\Controllers\AdminController' =>
-                new \App\Controllers\AdminController($authService, $adminService, $roomService),
-
+            'App\Controllers\RoomController' => $roomController,
+            'App\Controllers\AuthController' => $authController,
+            'App\Controllers\AdminController' => $adminController,
+            'App\Controllers\ApiController' => $apiController,
             default => throw new Exception('Controller not found: ' . $class)
         };
 
@@ -107,12 +118,27 @@ switch ($routeInfo[0]) {
         try {
             $controller->$method($vars);
         } catch (Throwable $e) {
-            // Log error and show friendly message
+            // Log error
             error_log('Controller error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
-            http_response_code(500);
-            echo '500 - Internal Server Error';
-            if (ini_get('display_errors')) {
-                echo '<pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
+            
+            // If it's an AJAX request, return JSON error
+            $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                     strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+            
+            if ($isAjax) {
+                http_response_code(500);
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Internal server error'
+                ]);
+            } else {
+                // Regular request - show error page
+                http_response_code(500);
+                echo '500 - Internal Server Error';
+                if (ini_get('display_errors')) {
+                    echo '<pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
+                }
             }
         }
         break;
