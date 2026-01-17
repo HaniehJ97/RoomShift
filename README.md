@@ -193,3 +193,4 @@ roomshift/
 ---
 
 *This project was developed individually for Web Development 1. All code is my own work but I got help for javascript*
+*I added the MIT License becasue I enjoyed creating this game, and I want to make my github repository public and work more on it*

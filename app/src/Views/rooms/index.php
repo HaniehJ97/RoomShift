@@ -8,7 +8,7 @@
                     Build & <span class="text-warning">Play</span> Escape Rooms
                 </h1>
                 <p class="lead text-light">
-                    Find the key and skip the room. be careful with teh bombs!
+                    Find the key and skip the room. be careful with the bombs!
                 </p>
 
                 <div class="d-flex gap-3 mt-4">
