@@ -4,7 +4,6 @@ namespace App\Controllers;
 
 use App\Services\IAuthService;
 use App\Services\IRoomService;
-use App\Services\IUserService;
 
 class ApiController
 {
