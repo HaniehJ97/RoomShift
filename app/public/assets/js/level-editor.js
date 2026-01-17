@@ -14,8 +14,8 @@
         return;
     }
 
-    const W = data.gridWidth || 12;
-    const H = data.gridHeight || 12;
+    let W = data.gridWidth || 12;
+    let H = data.gridHeight || 12;
     const cfg = data.config || { 
         walls: [], 
         bombs: [], 
@@ -60,6 +60,7 @@
         return out;
     }
 
+    //writes the full level config JSON into a hidden input (plus width/height).
     function updateConfig() {
         const config = {
             walls: mapToList(walls),
@@ -78,6 +79,7 @@
         if (heightInput) heightInput.value = H;
     }
 
+    // Draws the grid based on current W and H and then colors cells based on state.
     function drawGrid() {
         gridEl.innerHTML = '';
         gridEl.style.gridTemplateColumns = `repeat(${W}, 34px)`;
@@ -113,6 +115,7 @@
         updateColors();
     }
 
+    // Updates cell colors based on current state of walls, bombs, key, and door.
     function updateColors() {
         const cells = gridEl.children;
         
@@ -157,6 +160,7 @@
         }
     }
 
+    // Cell click handler based on current tool
     function handleCellClick(x, y) {
         const pos = posKey(x, y);
         
@@ -196,6 +200,73 @@
         updateConfig();
     }
 
+    // Grid dimension change handler
+    function updateGridDimensions() {
+        const gridWidthInput = document.getElementById('gridWidth');
+        const gridHeightInput = document.getElementById('gridHeight');
+        const gridWidthHidden = document.getElementById('gridWidthInput');
+        const gridHeightHidden = document.getElementById('gridHeightInput');
+        
+        if (!gridWidthInput || !gridHeightInput) return;
+        
+        let newWidth = parseInt(gridWidthInput.value) || 12;
+        let newHeight = parseInt(gridHeightInput.value) || 12;
+        
+        // Validate bounds
+        newWidth = Math.max(8, Math.min(30, newWidth));
+        newHeight = Math.max(8, Math.min(30, newHeight));
+        
+        // Update inputs with validated values
+        gridWidthInput.value = newWidth;
+        gridHeightInput.value = newHeight;
+        
+        // Only update if dimensions actually changed
+        if (newWidth !== W || newHeight !== H) {
+            // Update global variables
+            const oldW = W;
+            const oldH = H;
+            W = newWidth;
+            H = newHeight;
+            
+            // Reset key and door positions if needed
+            if (key.x >= W) key.x = 0;
+            if (key.y >= H) key.y = 0;
+            if (door.x >= W) door.x = W - 1;
+            if (door.y >= H) door.y = H - 1;
+            
+            // Clear walls and bombs outside new bounds
+            const newWalls = {};
+            const newBombs = {};
+            
+            for (const pos in walls) {
+                const [x, y] = pos.split(',').map(Number);
+                if (x < W && y < H) {
+                    newWalls[pos] = true;
+                }
+            }
+            
+            for (const pos in bombs) {
+                const [x, y] = pos.split(',').map(Number);
+                if (x < W && y < H) {
+                    newBombs[pos] = true;
+                }
+            }
+            
+            walls = newWalls;
+            bombs = newBombs;
+            
+            // Update hidden inputs
+            if (gridWidthHidden) gridWidthHidden.value = W;
+            if (gridHeightHidden) gridHeightHidden.value = H;
+            
+            // Redraw
+            drawGrid();
+            updateConfig();
+            
+            console.log(`Grid resized from ${oldW}x${oldH} to ${W}x${H}`);
+        }
+    }
+
     // Set up tool buttons
     document.querySelectorAll('button[data-tool]').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -228,4 +299,121 @@
     // Initialize
     drawGrid();
     updateConfig();
+    
+    // Add event listeners for grid dimension changes
+    const gridWidthInput = document.getElementById('gridWidth');
+    const gridHeightInput = document.getElementById('gridHeight');
+    
+    if (gridWidthInput && gridHeightInput) {
+        // Create and add Apply button
+        const applyBtn = document.createElement('button');
+        applyBtn.type = 'button';
+        applyBtn.id = 'btnApplyGridSize';
+        applyBtn.className = 'btn btn-outline-info btn-sm ms-2';
+        applyBtn.innerHTML = '<i class="bi bi-check-lg"></i> Apply';
+        applyBtn.disabled = true; // Initially disabled
+        
+        // Insert the Apply button after the height input
+        const heightCol = gridHeightInput.closest('.col-md-6');
+        if (heightCol) {
+            const buttonWrapper = document.createElement('div');
+            buttonWrapper.className = 'mt-2';
+            buttonWrapper.appendChild(applyBtn);
+            heightCol.appendChild(buttonWrapper);
+        }
+        
+        // Track original values to know when something changed
+        let originalWidth = W;
+        let originalHeight = H;
+        
+        // Function to check if dimensions changed
+        function checkForChanges() {
+            const currentWidth = parseInt(gridWidthInput.value) || 12;
+            const currentHeight = parseInt(gridHeightInput.value) || 12;
+            const validatedWidth = Math.max(8, Math.min(30, currentWidth));
+            const validatedHeight = Math.max(8, Math.min(30, currentHeight));
+            
+            // Enable Apply button only if values changed
+            applyBtn.disabled = (validatedWidth === originalWidth && validatedHeight === originalHeight);
+        }
+        
+        // Listen for changes in inputs
+        gridWidthInput.addEventListener('input', checkForChanges);
+        gridHeightInput.addEventListener('input', checkForChanges);
+        
+        // Also apply on Enter key press
+        gridWidthInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                updateGridDimensions();
+                originalWidth = W;
+                originalHeight = H;
+                applyBtn.disabled = true;
+            }
+        });
+        
+        gridHeightInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                updateGridDimensions();
+                originalWidth = W;
+                originalHeight = H;
+                applyBtn.disabled = true;
+            }
+        });
+        
+        // Apply on button click
+        applyBtn.addEventListener('click', function() {
+            updateGridDimensions();
+            originalWidth = W;
+            originalHeight = H;
+            this.disabled = true;
+        });
+        
+        // Also apply when input loses focus (optional)
+        gridWidthInput.addEventListener('blur', function() {
+            // Only apply if changed and button is enabled
+            if (!applyBtn.disabled) {
+                updateGridDimensions();
+                originalWidth = W;
+                originalHeight = H;
+                applyBtn.disabled = true;
+            }
+        });
+        
+        gridHeightInput.addEventListener('blur', function() {
+            if (!applyBtn.disabled) {
+                updateGridDimensions();
+                originalWidth = W;
+                originalHeight = H;
+                applyBtn.disabled = true;
+            }
+        });
+        
+        // Add warning message about data loss
+        const warningDiv = document.createElement('div');
+        warningDiv.className = 'alert alert-warning alert-sm mt-2';
+        warningDiv.innerHTML = '<small><i class="bi bi-exclamation-triangle me-1"></i> Changing grid size will remove objects outside the new boundaries</small>';
+        warningDiv.style.display = 'none';
+        
+        // Insert warning
+        const gridDimensionsContainer = document.querySelector('.row.mt-3');
+        if (gridDimensionsContainer) {
+            const warningCol = document.createElement('div');
+            warningCol.className = 'col-md-12';
+            warningCol.appendChild(warningDiv);
+            gridDimensionsContainer.parentNode.insertBefore(warningCol, gridDimensionsContainer.nextSibling);
+        }
+        
+        // Show warning when inputs change
+        function showWarning() {
+            warningDiv.style.display = 'block';
+        }
+        
+        gridWidthInput.addEventListener('input', showWarning);
+        gridHeightInput.addEventListener('input', showWarning);
+        
+        // Hide warning after applying
+        applyBtn.addEventListener('click', function() {
+            warningDiv.style.display = 'none';
+        });
+    }
 })();

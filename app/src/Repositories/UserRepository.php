@@ -8,6 +8,7 @@ use PDO;
 
 class UserRepository extends Repository implements IUserRepository
 {
+    // Fetch all users from the database
     public function getAll(): array
     {
         $sql = 'SELECT id, name, email, role, created_at FROM users ORDER BY id DESC';
@@ -24,6 +25,7 @@ class UserRepository extends Repository implements IUserRepository
         return $users;
     }
 
+    // Find a user by their ID
     public function findById(int $id): ?UserModel
     {
         $sql = 'SELECT id, name, email, password_hash, role, created_at FROM users WHERE id = :id LIMIT 1';
@@ -38,6 +40,7 @@ class UserRepository extends Repository implements IUserRepository
         return new UserModel($row);
     }
 
+    // Find a user by their email
     public function findByEmail(string $email): ?UserModel
     {
         $sql = 'SELECT id, name, email, password_hash, role, created_at FROM users WHERE email = :email LIMIT 1';
@@ -52,6 +55,7 @@ class UserRepository extends Repository implements IUserRepository
         return new UserModel($row);
     }
 
+    // Create a new user in the database
     public function create(array $data): int
     {
         $sql = 'INSERT INTO users (name, email, password_hash, role, created_at)
@@ -69,6 +73,7 @@ class UserRepository extends Repository implements IUserRepository
         return (int)$this->getConnection()->lastInsertId();
     }
 
+    // Update a user's role
     public function updateRole(int $userId, string $role): bool
     {
         $allowedRoles = ['player', 'admin'];
@@ -84,6 +89,8 @@ class UserRepository extends Repository implements IUserRepository
             ':id' => $userId
         ]);
     }
+
+    // lightweight query for getting only users name by id
     public function getUserNameById(int $id): ?string
     {
         $sql = 'SELECT name FROM users WHERE id = :id LIMIT 1';

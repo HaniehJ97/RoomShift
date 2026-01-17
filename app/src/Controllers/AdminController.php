@@ -12,20 +12,19 @@ class AdminController
     private IAuthService $authService;
     private IAdminService $adminService;
     private IRoomService $roomService;
-    private IUserService $userService;
-
+  
+    //receives services and stores them for admin routes.
     public function __construct(
         IAuthService $authService,
         IAdminService $adminService,
-        IRoomService $roomService,
-        IUserService $userService
+        IRoomService $roomService
     ) {
         $this->authService = $authService;
         $this->adminService = $adminService;
         $this->roomService = $roomService;
-        $this->userService = $userService;
     }
 
+    //checks if the current user is an admin, redirects if not.
     private function requireAdmin(): void
     {
         if (!$this->authService->isLoggedIn()) {
@@ -41,12 +40,14 @@ class AdminController
         }
     }
 
+    //returns the current logged-in user's ID from session/service
     private function currentUserId(): int
     {
         return (int)($_SESSION['user_id'] ?? 0);
     }
 
-    // ==================== DASHBOARD ====================
+    // ============== DASHBOARD ===============
+    //loads dashboard stats and shows the admin dashboard page
     public function dashboard(array $vars = []): void
     {
         $this->requireAdmin();
@@ -55,7 +56,8 @@ class AdminController
         require __DIR__ . '/../Views/admin/dashboard.php';
     }
 
-    // ==================== USER MANAGEMENT ====================
+    // =============== USER MANAGEMENT ==============
+    //loads all users and shows the manage users page.
     public function users(array $vars = []): void
     {
         $this->requireAdmin();
@@ -64,6 +66,7 @@ class AdminController
         require __DIR__ . '/../Views/admin/manageUsers.php';
     }
 
+    //handles POST to change a user's role.
     public function updateUserRole(array $vars = []): void
     {
         $this->requireAdmin();
@@ -78,7 +81,8 @@ class AdminController
         exit;
     }
 
-    // ==================== ROOM MANAGEMENT ====================
+    // ==================== ROOM MANAGEMENT ==============
+    //loads all rooms and shows the manage rooms page.
     public function rooms(array $vars = []): void
     {
         $this->requireAdmin();
@@ -87,12 +91,14 @@ class AdminController
         require __DIR__ . '/../Views/admin/manageRooms.php'; 
     }
 
+    //shows the “create room” form (admin only).
     public function createForm(array $vars = []): void
     {
         $this->requireAdmin();
         require __DIR__ . '/../Views/admin/room-create.php';
     }
 
+    //handles POST to create a new room (admin only)
     public function createRoom(array $vars = []): void
     {
         $this->requireAdmin();
@@ -112,6 +118,7 @@ class AdminController
         }
     }
 
+    //shows the “edit room” form for a specific room (admin only).
     public function editRoomForm(array $vars = []): void
     {
         $this->requireAdmin();
@@ -128,6 +135,7 @@ class AdminController
         require __DIR__ . '/../Views/admin/room-edit.php';
     }
 
+    //handles POST to update a specific room (admin only).
     public function updateRoom(array $vars = []): void
     {
         $this->requireAdmin();
@@ -148,6 +156,7 @@ class AdminController
         }
     }
 
+    //handles POST to delete a specific room (admin only).
     public function deleteRoom(array $vars = []): void
     {
         $this->requireAdmin();
@@ -168,6 +177,7 @@ class AdminController
         exit;
     }
 
+    //handles POST to publish/unpublish a specific room (admin only).
     public function toggleRoomPublish(array $vars = []): void
     {
         $this->requireAdmin();

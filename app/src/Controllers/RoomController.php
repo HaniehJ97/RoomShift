@@ -22,6 +22,7 @@ class RoomController
         $this->userService = $userService;
     }
 
+    //ensures the user is logged in, redirects to login if not
     private function requireLogin(): void
     {
         if (!$this->authService->isLoggedIn()) {
@@ -32,6 +33,7 @@ class RoomController
     }
 
     // PLAYER ACTIONS ONLY
+    // shows list of rooms (admin sees all, others see published) and reneders view
     public function index(array $vars = []): void
     {
         $isLoggedIn = $this->authService->isLoggedIn();
@@ -52,6 +54,7 @@ class RoomController
         require __DIR__ . '/../Views/rooms/index.php';
     }
 
+    // loads a room, checks access rules, and renders the play page.
     public function play(array $vars = []): void
     {
         $this->requireLogin();

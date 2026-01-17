@@ -1,4 +1,6 @@
 // RoomShift Interactive JavaScript
+// I used a JavaScript class only where the page had complex,
+//  related behaviors; simpler scripts remain function-based.”
 class RoomManager {
     constructor() {
         this.init();
@@ -47,9 +49,11 @@ class RoomManager {
         // Fetch room details via AJAX
         fetch(`/api/rooms/${roomId}`)
             .then(response => response.json())
-            .then(room => {
-                this.displayRoomDetails(room);
+            .then(data => {
+            if (!data.success) throw new Error(data.message || "Failed");
+            this.displayRoomDetails(data.room);
             })
+
             .catch(error => {
                 modalBody.innerHTML = `
                     <div class="alert alert-danger">
@@ -61,7 +65,7 @@ class RoomManager {
             });
         
         // Update play button link
-        document.getElementById('playRoomBtn').href = `/play/${roomId}`;
+        document.getElementById('playRoomBtn').href = `/rooms/${roomId}/play`;
         
         // Show Bootstrap modal
         const roomModal = new bootstrap.Modal(document.getElementById('roomModal'));
@@ -111,6 +115,7 @@ class RoomManager {
         `;
     }
     
+    // Filter rooms based on search input
     filterRooms(searchTerm) {
         const roomItems = document.querySelectorAll('.list-group-item');
         const roomCount = document.getElementById('roomCount');
@@ -132,6 +137,7 @@ class RoomManager {
         roomCount.textContent = `${visibleCount} room${visibleCount !== 1 ? 's' : ''}`;
     }
     
+    // Create character counter element
     createCharCounter() {
         const descInput = document.getElementById('description');
         const counter = document.createElement('div');
@@ -141,6 +147,7 @@ class RoomManager {
         this.updateCharCount();
     }
     
+    // Update character count display
     updateCharCount() {
         const descInput = document.getElementById('description');
         const counter = document.getElementById('charCounter');
@@ -152,20 +159,32 @@ class RoomManager {
         counter.className = `form-text text-end ${length < min ? 'text-danger' : length > max ? 'text-warning' : 'text-success'}`;
     }
     
-    handleFormSubmit(event) {
-        // PREVENT DEFAULT FORM SUBMISSION
+        handleFormSubmit(event) {
         event.preventDefault();
         
         const form = event.target;
-        const formData = new FormData(form);
         
-        // Add CSRF token if needed (assuming you have one in meta tag)
+        // Collect form data as an object instead of FormData
+        const formData = new FormData(form);
+        const data = {};
+        
+        // Convert FormData to plain object
+        formData.forEach((value, key) => {
+            // Handle checkboxes specifically
+            if (form.elements[key]?.type === 'checkbox') {
+                data[key] = form.elements[key].checked ? '1' : '0';
+            } else {
+                data[key] = value;
+            }
+        });
+        
+        // Add CSRF token
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
         if (csrfToken) {
-            formData.append('csrf_token', csrfToken);
+            data.csrf_token = csrfToken;
         }
         
-        // Show loading state on button
+        // Show loading state
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Creating...';
@@ -175,43 +194,36 @@ class RoomManager {
         const errorDiv = form.querySelector('.ajax-error');
         if (errorDiv) errorDiv.remove();
         
-        // AJAX Submission
-        fetch(form.action, {  // Use the form's action attribute
+        // Send as JSON instead of FormData
+        fetch(form.action, {
             method: form.method,
-            body: formData,
             headers: {
-                'X-Requested-With': 'XMLHttpRequest' // Mark as AJAX request
-            }
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(data)
         })
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            return response.json(); // Expect JSON response
+            return response.json();
         })
         .then(data => {
-            // Handle successful response
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
             
             if (data.success) {
-                // Show success message
                 alert('Room created successfully!');
-                
-                // Option 1: Redirect to new room
                 if (data.redirect) {
                     window.location.href = data.redirect;
-                }
-                // Option 2: Reset form for another room
-                else {
+                } else {
                     form.reset();
-                    // Update char counter if exists
                     if (typeof this.updateCharCount === 'function') {
                         this.updateCharCount();
                     }
                 }
             } else {
-                // Show error from server
                 this.showFormError(form, data.message || 'Something went wrong');
             }
         })
@@ -219,8 +231,6 @@ class RoomManager {
             console.error('Error:', error);
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
-            
-            // Show error to user
             this.showFormError(form, 'Failed to create room. Please try again.');
         });
     }
@@ -235,21 +245,26 @@ class RoomManager {
         errorDiv.className = 'alert alert-danger mt-3 ajax-error';
         errorDiv.innerHTML = `
             <i class="bi bi-exclamation-triangle me-2"></i>
-            ${message}
+            ${this.escapeHtml(message)}
         `;
         
-        // Insert after form or before submit button
-        const submitBtn = form.querySelector('button[type="submit"]');
-        form.insertBefore(errorDiv, submitBtn);
+        // Find a safe place to insert - try inserting at the end of the form
+        form.appendChild(errorDiv);
     }
-    
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-}
 
+    // Simple HTML escaping to prevent XSS
+    escapeHtml(str) {
+        if (typeof str !== 'string') return '';
+
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+}
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.roomManager = new RoomManager();
@@ -278,7 +293,6 @@ function setupRoomSearch() {
     }
 }
 
-// Add this to your existing rooms page initialization
 if (document.querySelector('.rooms-list')) {
     setupRoomSearch();
 }

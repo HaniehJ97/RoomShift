@@ -10,6 +10,7 @@ class AdminService implements IAdminService
     private UserRepository $userRepository;
     private RoomRepository $roomRepository;
 
+    //stores the user and room repository dependencies
     public function __construct(
         UserRepository $userRepository,
         RoomRepository $roomRepository
@@ -18,26 +19,31 @@ class AdminService implements IAdminService
         $this->roomRepository = $roomRepository;
     }
 
+    //returns all users for admin management
     public function getAllUsers(): array
     {
         return $this->userRepository->getAll();
     }
 
+    //updates a user's role
     public function updateUserRole(int $userId, string $role): bool
     {
         return $this->userRepository->updateRole($userId, $role);
     }
 
+    //returns all rooms for admin management
     public function getAllRooms(): array
     {
         return $this->roomRepository->getAll();
     }
 
+    //publishes or unpublishes a room
     public function toggleRoomPublish(int $roomId, bool $publish): bool
     {
         return $this->roomRepository->togglePublish($roomId, $publish);
     }
 
+    //returns dashboard statistics (user count, room count, published rooms, active games)
     public function getDashboardStats(): array
     {
         $allUsers = $this->userRepository->getAll();
@@ -51,7 +57,6 @@ class AdminService implements IAdminService
             }
         }
         
-        // For now, active games can be 0 or you can implement tracking
         $activeGames = 0;
         
         return [

@@ -7,6 +7,7 @@
             <li><a href="/admin">Dashboard</a></li>
             <li><a href="/admin/users">Manage Users</a></li>
             <li><a href="/admin/rooms">Manage Rooms</a></li>
+            <li><a href="/admin/rooms/create">Create Room</a></li>
             <li><a href="/">Back to Site</a></li>
         </ul>
     </div>

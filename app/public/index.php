@@ -113,24 +113,25 @@ switch ($routeInfo[0]) {
             'App\Controllers\ApiController' => $apiController,
             default => throw new Exception('Controller not found: ' . $class)
         };
-
-        // call controller method
         try {
             $controller->$method($vars);
         } catch (Throwable $e) {
             // Log error
             error_log('Controller error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            error_log('Stack trace: ' . $e->getTraceAsString());
             
             // If it's an AJAX request, return JSON error
             $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
-                     strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
             
             if ($isAjax) {
                 http_response_code(500);
                 header('Content-Type: application/json');
                 echo json_encode([
                     'success' => false,
-                    'message' => 'Internal server error'
+                    'message' => 'Internal server error: ' . $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
                 ]);
             } else {
                 // Regular request - show error page
@@ -138,8 +139,10 @@ switch ($routeInfo[0]) {
                 echo '500 - Internal Server Error';
                 if (ini_get('display_errors')) {
                     echo '<pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
+                    echo '<pre>File: ' . htmlspecialchars($e->getFile()) . '</pre>';
+                    echo '<pre>Line: ' . htmlspecialchars((string)$e->getLine()) . '</pre>';
+                    echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
                 }
             }
         }
-        break;
 }

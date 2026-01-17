@@ -9,31 +9,37 @@ class RoomService implements IRoomService
 {
     private IRoomRepository $roomRepository;
 
+    //stores the room repository dependency
     public function __construct(IRoomRepository $roomRepository)
     {
         $this->roomRepository = $roomRepository;
     }
 
+    //returns all rooms 
     public function getAllRooms(): array
     {
         return $this->roomRepository->getAll();
     }
 
+    //returns all published rooms
     public function getPublishedRooms(): array
     {
         return $this->roomRepository->getPublishedRooms();
     }
 
+    //returns all rooms created by a specific user
     public function getRoomsByCreator(int $creatorId): array
     {
         return $this->roomRepository->getRoomsByCreator($creatorId);
     }
 
+    //returns a room by its ID
     public function getRoomById(int $id): ?RoomModel
     {
         return $this->roomRepository->getById($id);
     }
 
+    //validates input, builds a RoomModel, then saves it.
     public function createRoom(array $roomData): int
     {
         $this->validateRoomData($roomData);
@@ -43,11 +49,13 @@ class RoomService implements IRoomService
         return $this->roomRepository->create($room);
     }
     
+    //create a new room and return its ID
     public function createRoomReturnId(array $roomData): int
     {
         return $this->createRoom($roomData);
     }
 
+    //validates a RoomModel then saves changes.
     public function updateRoom(RoomModel $room): bool
     {
         $this->validateRoomData([
@@ -62,6 +70,7 @@ class RoomService implements IRoomService
         return $this->roomRepository->update($room);
     }
 
+    // Validates room data before creation or update
     private function validateRoomData(array $data): void
     {
         $title = trim($data['title'] ?? '');
@@ -148,23 +157,27 @@ class RoomService implements IRoomService
         }
     }
 
+    //deletes a room by its ID
     public function deleteRoom(int $id): void
     {
         $this->roomRepository->delete($id);
     }
 
+    //updates publish status of a room
     public function togglePublish(int $roomId, bool $publish): bool
     {
         return $this->roomRepository->togglePublish($roomId, $publish);
     
     }
-        // Update RoomService.php by adding these methods:
+       
+    //creates a new room from POST data and returns its ID
     public function createRoomFromPostData(array $postData, int $creatorId): int
     {
         $roomData = $this->processRoomPostData($postData, $creatorId);
         return $this->createRoom($roomData);
     }
 
+    //updates a room from POST data
     public function updateRoomFromPostData(int $roomId, array $postData): bool
     {
         $room = $this->getRoomById($roomId);
@@ -190,6 +203,7 @@ class RoomService implements IRoomService
         return $this->updateRoom($room);
     }
 
+    //processes POST data into room data array
     private function processRoomPostData(array $postData, int $creatorId): array
     {
         // Get the JSON config from the form
@@ -223,6 +237,7 @@ class RoomService implements IRoomService
         ];
     }
 
+    //allows admins always, otherwise only allows published rooms.
     public function canUserAccessRoom(int $userId, RoomModel $room, bool $isAdmin): bool
     {
         // Admin can access any room

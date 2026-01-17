@@ -13,16 +13,19 @@ class AuthController
         $this->authService = $authService;
     }
 
+    //renders the login form
     public function showLogin(): void
     {
         require __DIR__ . '/../Views/auth/login.php';
     }
 
+    //renders the registration form
     public function showRegister(): void
     {
         require __DIR__ . '/../Views/auth/register.php';
     }
 
+    //handles POST to login form, uses AuthService to login and redirects with messages
     public function login(array $vars = []): void
     {
         $email = $_POST['email'] ?? '';
@@ -41,6 +44,7 @@ class AuthController
         exit;
     }
 
+    //handles POST to registration form, uses AuthService to register and redirects with messages
     public function register(array $vars = []): void
     {
         try {
@@ -58,6 +62,7 @@ class AuthController
         }
     }
 
+    //logs out the user and redirects to login page
     public function logout(): void
     {
         $this->authService->logout();

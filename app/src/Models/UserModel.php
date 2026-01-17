@@ -15,6 +15,7 @@ class UserModel
     public const ROLE_PLAYER = 'player';
     public const ROLE_ADMIN = 'admin';
 
+    //constructor to initialize properties from an array
     public function __construct(array $data = [])
     {
         if (empty($data)) {
@@ -30,14 +31,14 @@ class UserModel
         $this->updated_at = $data['updated_at'] ?? date('Y-m-d H:i:s');
     }
 
-    // REMOVED validate() method
-
+    
     public function setPassword(string $plainPassword): void
     {
-        // Just hash the password, validation moved to service
+        // Just hash the password and store it
         $this->password_hash = password_hash(trim($plainPassword), PASSWORD_DEFAULT);
     }
 
+    //verifies a plain password against the stored hash
     public function verifyPassword(string $plainPassword): bool
     {
         return password_verify($plainPassword, $this->password_hash);

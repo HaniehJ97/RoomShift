@@ -10,18 +10,17 @@ class ApiController
 {
     private IAuthService $authService;
     private IRoomService $roomService;
-    private IUserService $userService;
+    
 
     public function __construct(
         IAuthService $authService,
-        IRoomService $roomService,
-        IUserService $userService
+        IRoomService $roomService
     ) {
         $this->authService = $authService;
         $this->roomService = $roomService;
-        $this->userService = $userService;
     }
 
+    //outputs JSON with correct headers + status code.
     private function jsonResponse(array $data, int $statusCode = 200): void
     {
         http_response_code($statusCode);
@@ -30,6 +29,7 @@ class ApiController
         exit;
     }
 
+    //ensures the request is an AJAX request, blocks if its not.
     private function requireAjax(): void
     {
         if (empty($_SERVER['HTTP_X_REQUESTED_WITH']) || 
@@ -41,6 +41,7 @@ class ApiController
         }
     }
 
+    //ensures the user is logged in, blocks if not.
     private function requireLogin(): void
     {
         if (!$this->authService->isLoggedIn()) {
@@ -51,6 +52,7 @@ class ApiController
         }
     }
 
+    //ensures the user is an admin, blocks if not.
     private function requireAdmin(): void
     {
         if (!$this->authService->isAdmin()) {
@@ -61,20 +63,8 @@ class ApiController
         }
     }
 
-    private function validateCsrf(): void
-    {
-        $token = $_POST['csrf_token'] ?? $_GET['csrf_token'] ?? '';
-        $sessionToken = $_SESSION['csrf_token'] ?? '';
-        
-        if (!hash_equals($sessionToken, $token)) {
-            $this->jsonResponse([
-                'success' => false,
-                'message' => 'CSRF token mismatch'
-            ], 403);
-        }
-    }
-
-    // GET /api/rooms/{id}
+    // GET /api/rooms/{id} 
+    //returns one room as JSON (used by rooms modal)
     public function getRoom(array $vars = []): void
     {
         $this->requireAjax();
@@ -115,18 +105,35 @@ class ApiController
             ]
         ]);
     }
-
+  
     // POST /api/rooms
+    //creates a room via JSON/AJAX request and returns JSON result
     public function createRoom(array $vars = []): void
     {
         $this->requireAjax();
         $this->requireLogin();
         $this->requireAdmin();
-        $this->validateCsrf();
-
+        
+        // Get raw JSON input instead of $_POST
+        $jsonInput = file_get_contents('php://input');
+        $data = json_decode($jsonInput, true) ?? [];
+        
+        // Validate CSRF from JSON data
+        $token = $data['csrf_token'] ?? '';
+        $sessionToken = $_SESSION['csrf_token'] ?? '';
+        
+        if (!hash_equals($sessionToken, $token)) {
+            $this->jsonResponse([
+                'success' => false,
+                'message' => 'CSRF token mismatch'
+            ], 403);
+        }
+        
         try {
             $userId = $this->authService->getCurrentUser()->id;
-            $roomId = $this->roomService->createRoomFromPostData($_POST, $userId);
+            
+            // Pass the decoded data to the service
+            $roomId = $this->roomService->createRoomFromPostData($data, $userId);
             
             $this->jsonResponse([
                 'success' => true,

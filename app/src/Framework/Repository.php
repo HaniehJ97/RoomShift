@@ -9,6 +9,7 @@ abstract class Repository
 {
     private static ?PDO $connection = null;
 
+    // Get the PDO connection, initializing it if necessary
     protected function getConnection(): PDO
     {
         if (self::$connection === null) {
@@ -18,6 +19,7 @@ abstract class Repository
         return self::$connection;
     }
 
+    // Initialize the PDO connection , setting error mode to exceptions
     private function initializeConnection(): void
     {
         try {

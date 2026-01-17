@@ -1,4 +1,5 @@
 <?php require __DIR__ . '/../partials/header.php' ?>
+<meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
 
 <div class="admin-container">
     <div class="admin-sidebar">
@@ -173,6 +174,7 @@ window.levelEditorData = {
 </script>
 
 <script src="/assets/js/level-editor.js"></script>
+<script src="/assets/js/rooms.js"></script>
 
 <?php 
 // Clear form data after showing

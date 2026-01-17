@@ -15,6 +15,7 @@ class RoomModel
     public string $created_at;
     public string $updated_at;
 
+    //constructor to initialize properties from an array
     public function __construct(array $data = [])
     {
         // Set default level config
@@ -51,6 +52,7 @@ class RoomModel
         
     }
     
+    //returns the level_config as JSON (for editor/game scripts).
     public function getLevelConfigJson(): string
     {
         return json_encode($this->level_config);

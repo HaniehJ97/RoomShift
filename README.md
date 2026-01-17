@@ -133,7 +133,7 @@ The game (`public/assets/js/game.js`) uses:
 - Collision detection
 - Visual feedback for game events
 - Keyboard and button controls
-- Web Audio API Implementation ("Game Effects: For the Web Audio API sound effects and particle animations in game.js, I received assistance from online resources and my sister (Front-end Deveoloper).)
+- Web Audio API Implementation ("Game Effects: For the Web Audio API sound effects and particle animations in .js files I received assistance from online resources and my sister (Front-end Deveoloper).)
 
 ## WCAG Compliance Efforts
 From Lecture 4 requirements, I implemented:
@@ -192,4 +192,4 @@ roomshift/
 
 ---
 
-*This project was developed individually for Web Development 1. All code is my own work except game.js for audio and game effects*
+*This project was developed individually for Web Development 1. All code is my own work I got help for javascript*

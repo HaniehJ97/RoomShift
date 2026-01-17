@@ -9,11 +9,13 @@ class AuthService implements IAuthService
 {
     private IUserRepository $userRepository;
 
+    //stores the user repository dependency
     public function __construct(IUserRepository $userRepository)
     {
         $this->userRepository = $userRepository;
     }
 
+    //checks email+password, regenerates session id, and stores user data in session.
     public function login(string $email, string $password): ?UserModel
     {
         $email = trim($email);
@@ -27,7 +29,7 @@ class AuthService implements IAuthService
             return null;
         }
 
-        // Important: regenerate session AFTER successful login
+        //regenerate session after successful login
         session_regenerate_id(true);
 
         $_SESSION['user_id']   = $user->id;
@@ -37,6 +39,7 @@ class AuthService implements IAuthService
         return $user;
     }
 
+    //validates input, hashes password, builds a UserModel, then saves it.
     public function register(array $data): int
     {
         $this->validateRegistrationData($data);
@@ -57,6 +60,7 @@ class AuthService implements IAuthService
         ]);
     }
 
+    //validates registration input data
     private function validateRegistrationData(array $data): void
     {
         $email = trim($data['email'] ?? '');
@@ -84,7 +88,7 @@ class AuthService implements IAuthService
         }
     }
 
-    // ... rest of the methods remain the same
+   //clears session data, deletes cookie, and destroys the session.
     public function logout(): void
     {
         $_SESSION = [];
@@ -105,16 +109,19 @@ class AuthService implements IAuthService
         session_destroy();
     }
 
+    //returns true if user_id exists in session.
     public function isLoggedIn(): bool
     {
         return isset($_SESSION['user_id']);
     }
 
+    //returns true if session role is admin
     public function isAdmin(): bool
     {
         return isset($_SESSION['user_role']) && $_SESSION['user_role'] === UserModel::ROLE_ADMIN;
     }
 
+    //loads the logged-in user from the database using session user_id
     public function getCurrentUser(): ?UserModel
     {
         if (!$this->isLoggedIn()) {

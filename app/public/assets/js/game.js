@@ -67,6 +67,7 @@
     return y * w + x;
   }
 
+  // UI UPDATE FUNCTIONS
   function setStatus(text) {
     if (statusEl) {
       statusEl.textContent = text;
@@ -78,6 +79,7 @@
     }
   }
 
+  // Update score display with animation
   function setScore(val) {
     score = val;
     if (scoreEl) {
@@ -94,6 +96,7 @@
     }
   }
 
+  // GRID AND CELL FUNCTIONS
   function buildGrid() {
     if (!gridEl) return;
 
@@ -121,6 +124,7 @@
     }
   }
 
+  // Reset all cells to default appearance
   function resetCells() {
     for (let i = 0; i < cells.length; i++) {
       cells[i].style.background = "rgba(255,255,255,0.05)";
@@ -130,6 +134,7 @@
     }
   }
 
+  // Paint a specific cell with given background and border style
   function paintCell(x, y, bg, strong) {
     const idx = indexOfCell(x, y);
     const cell = cells[idx];
@@ -141,6 +146,7 @@
     }
   }
 
+  // Draw visited cells with fog of war effect
   function drawVisited() {
     if (!hideSecrets) return;
 
@@ -152,6 +158,7 @@
     }
   }
 
+  // Draw walls, bombs, key, and door if not in player mode
   function drawSecretsIfAllowed() {
     if (hideSecrets) return;
 
@@ -263,6 +270,7 @@
     }, 1000);
   }
 
+  // Door reached animation
   function animateDoorReached(x, y) {
     const idx = indexOfCell(x, y);
     const cell = cells[idx];
