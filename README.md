@@ -192,4 +192,4 @@ roomshift/
 
 ---
 
-*This project was developed individually for Web Development 1. All code is my own work I got help for javascript*
+*This project was developed individually for Web Development 1. All code is my own work but I got help for javascript*

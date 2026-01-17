@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mysql
--- Generation Time: Jan 16, 2026 at 12:50 PM
+-- Generation Time: Jan 17, 2026 at 06:03 PM
 -- Server version: 12.0.2-MariaDB-ubu2404
 -- PHP Version: 8.3.27
 
@@ -56,7 +56,8 @@ INSERT INTO `rooms` (`id`, `title`, `description`, `created_at`, `creator_id`, `
 (8, 'sdfsfs', 'sfdsfsdfdsfsdf', '2026-01-12 17:17:14', 5, 1, 'medium', 30, '{\"grid_width\":12,\"grid_height\":12,\"walls\":[],\"bombs\":[],\"key\":{\"x\":0,\"y\":0},\"door\":{\"x\":11,\"y\":11}}', NULL, '2026-01-12 17:17:14'),
 (9, 'test room', 'this is just a simple test', '2026-01-12 17:50:44', 5, 1, 'easy', 15, '{\"grid_width\":14,\"grid_height\":14,\"walls\":[],\"bombs\":[],\"key\":{\"x\":0,\"y\":0},\"door\":{\"x\":11,\"y\":11}}', NULL, '2026-01-12 17:50:44'),
 (10, 'text room', 'this is the test room with the girid', '2026-01-12 17:55:11', 5, 1, 'easy', 10, '{\"grid_width\":12,\"grid_height\":12,\"walls\":[],\"bombs\":[{\"x\":3,\"y\":1},{\"x\":3,\"y\":2},{\"x\":3,\"y\":4},{\"x\":3,\"y\":7},{\"x\":3,\"y\":9}],\"key\":{\"x\":9,\"y\":5},\"door\":{\"x\":8,\"y\":8}}', NULL, '2026-01-12 17:57:22'),
-(11, 'escape room 1', 'there will be 2 row of walls, 4 bombs , you must follow the walls to find the key to the door, be careful for the bombs', '2026-01-13 11:11:30', 5, 1, 'medium', 5, '{\"grid_width\":12,\"grid_height\":12,\"walls\":[{\"x\":2,\"y\":1},{\"x\":2,\"y\":2},{\"x\":2,\"y\":3},{\"x\":2,\"y\":4},{\"x\":2,\"y\":5},{\"x\":4,\"y\":1},{\"x\":4,\"y\":2},{\"x\":4,\"y\":3},{\"x\":4,\"y\":4},{\"x\":4,\"y\":5},{\"x\":6,\"y\":1},{\"x\":6,\"y\":2},{\"x\":6,\"y\":3},{\"x\":6,\"y\":4},{\"x\":6,\"y\":5},{\"x\":8,\"y\":1},{\"x\":8,\"y\":2},{\"x\":8,\"y\":3},{\"x\":8,\"y\":4},{\"x\":8,\"y\":5},{\"x\":2,\"y\":7},{\"x\":2,\"y\":8},{\"x\":2,\"y\":9},{\"x\":2,\"y\":10},{\"x\":4,\"y\":7},{\"x\":4,\"y\":8},{\"x\":4,\"y\":9},{\"x\":4,\"y\":10},{\"x\":6,\"y\":7},{\"x\":6,\"y\":8},{\"x\":6,\"y\":9},{\"x\":6,\"y\":10},{\"x\":8,\"y\":7},{\"x\":8,\"y\":8},{\"x\":8,\"y\":9},{\"x\":8,\"y\":10}],\"bombs\":[{\"x\":1,\"y\":4},{\"x\":3,\"y\":4},{\"x\":5,\"y\":8},{\"x\":10,\"y\":10}],\"key\":{\"x\":11,\"y\":6},\"door\":{\"x\":10,\"y\":2}}', NULL, '2026-01-13 11:11:30');
+(11, 'escape room 1', 'there will be 2 row of walls, 4 bombs , you must follow the walls to find the key to the door, be careful for the bombs', '2026-01-13 11:11:30', 5, 1, 'medium', 5, '{\"grid_width\":10,\"grid_height\":10,\"walls\":[{\"x\":2,\"y\":1},{\"x\":2,\"y\":2},{\"x\":2,\"y\":3},{\"x\":2,\"y\":4},{\"x\":2,\"y\":5},{\"x\":4,\"y\":1},{\"x\":4,\"y\":2},{\"x\":4,\"y\":3},{\"x\":4,\"y\":4},{\"x\":4,\"y\":5},{\"x\":6,\"y\":1},{\"x\":6,\"y\":2},{\"x\":6,\"y\":3},{\"x\":6,\"y\":4},{\"x\":6,\"y\":5},{\"x\":8,\"y\":1},{\"x\":8,\"y\":2},{\"x\":8,\"y\":3},{\"x\":8,\"y\":4},{\"x\":8,\"y\":5},{\"x\":2,\"y\":7},{\"x\":2,\"y\":8},{\"x\":2,\"y\":9},{\"x\":4,\"y\":7},{\"x\":4,\"y\":8},{\"x\":4,\"y\":9},{\"x\":6,\"y\":7},{\"x\":6,\"y\":8},{\"x\":6,\"y\":9},{\"x\":8,\"y\":7},{\"x\":8,\"y\":8},{\"x\":8,\"y\":9}],\"bombs\":[{\"x\":1,\"y\":4},{\"x\":5,\"y\":8},{\"x\":0,\"y\":8},{\"x\":5,\"y\":4}],\"key\":{\"x\":0,\"y\":6},\"door\":{\"x\":9,\"y\":2}}', NULL, '2026-01-17 16:47:18'),
+(16, 'Final Destination', 'Its full of bombs, be careful and check your steps, you will find the key close to the door, but question is where is the key?', '2026-01-17 17:56:34', 5, 1, 'hard', 10, '{\"grid_width\":12,\"grid_height\":12,\"walls\":[{\"x\":4,\"y\":2},{\"x\":4,\"y\":3},{\"x\":4,\"y\":7},{\"x\":4,\"y\":8},{\"x\":7,\"y\":4},{\"x\":7,\"y\":5},{\"x\":7,\"y\":6},{\"x\":10,\"y\":2},{\"x\":10,\"y\":3},{\"x\":10,\"y\":8},{\"x\":10,\"y\":7}],\"bombs\":[{\"x\":4,\"y\":4},{\"x\":4,\"y\":9},{\"x\":7,\"y\":7},{\"x\":7,\"y\":3},{\"x\":10,\"y\":4},{\"x\":10,\"y\":9},{\"x\":10,\"y\":6},{\"x\":10,\"y\":1},{\"x\":4,\"y\":1}],\"key\":{\"x\":8,\"y\":5},\"door\":{\"x\":11,\"y\":5}}', NULL, '2026-01-17 17:56:34');
 
 -- --------------------------------------------------------
 
@@ -81,8 +82,9 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `email`, `password_hash`, `name`, `role`, `created_at`, `updated_at`) VALUES
 (1, 'Haniehj.jafari@gmail.com', '$2y$12$F83InwpDSbmfWJ/RAK4zte2Xnc5Ft.e.UBvjQX5tHKXPHzqqEnv9m', 'Hanieh Jafari', 'player', '2025-12-12 17:19:03', '2025-12-13 10:45:19'),
 (5, 'admin@roomshift.com', '$2y$12$anOU8yzlvLkj3cBZkgq4ouV357Nfc65DikUbLf9KLiKY37yykSvlu', 'admin', 'admin', '2025-12-13 10:46:12', '2025-12-13 10:46:38'),
-(6, 'test@email.com', '$2y$12$NwfJ8ePFnY3u7bffLlOgyeR0NHd2UvuAdZNtAkasHcMuw0SBBut8W', 'test user', 'player', '2025-12-17 11:39:32', '2025-12-17 11:39:32'),
-(7, 'hanieh@gmail.com', '$2y$12$/DJSJiDBv5QngrDt3pvDiuzO6HKQ6qCjdwBSZRp.E.Z1XNeUSDpVC', 'Hanieh', 'admin', '2026-01-13 10:48:08', '2026-01-13 12:51:55');
+(6, 'test@email.com', '$2y$12$NwfJ8ePFnY3u7bffLlOgyeR0NHd2UvuAdZNtAkasHcMuw0SBBut8W', 'test user', 'player', '2025-12-17 11:39:32', '2026-01-17 15:46:03'),
+(7, 'hanieh@gmail.com', '$2y$12$/DJSJiDBv5QngrDt3pvDiuzO6HKQ6qCjdwBSZRp.E.Z1XNeUSDpVC', 'Hanieh', 'admin', '2026-01-13 10:48:08', '2026-01-13 12:51:55'),
+(8, 'abc@gmail.com', '$2y$12$wtZkVWCr23XC45syoUVvM.b5iCDfutsED9ntg4GfxoBUQKURpu0mi', 'erf', 'player', '2026-01-17 17:57:53', '2026-01-17 17:57:53');
 
 --
 -- Indexes for dumped tables
@@ -109,13 +111,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `rooms`
 --
 ALTER TABLE `rooms`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
