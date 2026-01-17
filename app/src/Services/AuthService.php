@@ -43,9 +43,16 @@ class AuthService implements IAuthService
     public function register(array $data): int
     {
         $this->validateRegistrationData($data);
-        
+
+        $email = $data['email'] ?? '';
+
+        // Check if email already exists BEFORE inserting
+        if ($this->userRepository->findByEmail($email)) {
+            throw new \InvalidArgumentException('This email address is already registered.');
+        }
+
         $user = new UserModel([
-            'email' => $data['email'] ?? '',
+            'email' => $email,
             'name'  => $data['name'] ?? '',
             'role'  => UserModel::ROLE_PLAYER
         ]);
