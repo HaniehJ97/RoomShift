@@ -62,6 +62,7 @@ Or run:
 ```bash
 docker compose down
 ```
+---------------------------------------------------------------------------------------------------------------
 
 # RoomShift - Digital Escape Room Platform
 
@@ -118,7 +119,7 @@ I followed the MVC pattern with these enhancements:
 
 ## Security Features
 1. **Password Hashing:** Uses PHP's `password_hash()` with bcrypt
-2. **CSRF Protection:** Tokens on all forms (see `header.php` meta tag)
+2. **CSRF Protection:** CSRF token is implemented and validated for sensitive actions (especially API/AJAX requests).
 3. **Prepared Statements:** PDO used everywhere in repositories
 4. **Session Security:** HTTP-only cookies, session regeneration on login
 
@@ -133,14 +134,14 @@ The game (`public/assets/js/game.js`) uses:
 - Collision detection
 - Visual feedback for game events
 - Keyboard and button controls
-- Web Audio API Implementation ("Game Effects: For the Web Audio API sound effects and particle animations in .js files I received assistance from online resources and my sister (Front-end Deveoloper).)
+- Web Audio API Implementation ("Game Effects: For the Web Audio API sound effects and particle animations in .js files I received assistance from online resources and guidance from my sister (Front-end Developer).)
 
 ## WCAG Compliance Efforts
 From Lecture 4 requirements, I implemented:
 
 1. **Semantic HTML:** Used `<nav>`, `<main>`, proper headings
 2. **Form Labels:** All inputs have `<label>` with `for` attributes
-3. **Color Contrast:** Bootstrap's default colors meet AA standards
+3. **Color Contrast:** Color contrast was checked and improved; the design aims for WCAG AA where possible.
 4. **Keyboard Navigation:** Game fully playable with keyboard
 5. **Responsive Design:** Works on mobile, tablet, desktop
 
@@ -150,11 +151,20 @@ From Lecture 4 requirements, I implemented:
 From Lecture 4 requirements:
 
 1. **Minimal Data:** Only collect email, name, and password
-2. **Secure Storage:** Passwords hashed, sessions encrypted
+2. **Secure Storage:** Passwords are hashed; sessions are managed securely using PHP’s session mechanism.
 3. **Transparency:** Clear what data is collected (registration form)
-4. **Session Cleanup:** Automatic expiry, no permanent tracking
+4. **Session Cleanup:** Sessions are temporary and destroyed on logout; no persistent tracking is implemented.
 
 **Note:** No analytics, cookies only for session management.
+
+## Security Considerations
+
+- The application uses prepared statements (parameterized queries) to reduce the risk of SQL injection.
+- User input is validated on the server before being stored (e.g., email format, required fields).
+- Output is escaped before being rendered in the browser to prevent XSS attacks.
+- Authentication and authorization checks protect routes and admin functionality.
+- Passwords are securely hashed using PHP’s password hashing functions and never stored in plain text.
+
 
 ## Special Notes for Grading
 
