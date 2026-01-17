@@ -106,7 +106,7 @@ namespace FastRoute\Dispatcher {
 
     class MarkBased extends RegexBasedAbstract {
         public function __construct(array $data);
-        protected function dispatchVariableRoute(array<array> $routeData, string $uri): array;
+        protected function dispatchVariableRoute(arbutray<array> $routeData, string $uri): array;
     }
 }
 

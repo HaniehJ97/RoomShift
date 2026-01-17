@@ -8,6 +8,7 @@ use PDO;
 
 class RoomRepository extends Repository implements IRoomRepository
 {
+    // Fetch all rooms from the database
     public function getAll(): array
     {
         $sql = 'SELECT id, title, description, creator_id, difficulty, estimated_time, 
@@ -29,6 +30,7 @@ class RoomRepository extends Repository implements IRoomRepository
         return $rooms;
     }
 
+    // Fetch a room by its ID
     public function getById(int $id): ?RoomModel
     {
         $query = 'SELECT id, title, description, creator_id, is_published, 
@@ -49,6 +51,7 @@ class RoomRepository extends Repository implements IRoomRepository
         return new RoomModel($row);
     }
     
+    // Fetch all published rooms
     public function getPublishedRooms(): array
     {
         $query = 'SELECT id, title, description, creator_id, is_published, 
@@ -69,6 +72,7 @@ class RoomRepository extends Repository implements IRoomRepository
         return $rooms;
     }
     
+    // Fetch rooms created by a specific user
     public function getRoomsByCreator(int $creatorId): array
     {
         $query = 'SELECT id, title, description, creator_id, is_published, 
@@ -92,6 +96,7 @@ class RoomRepository extends Repository implements IRoomRepository
         return $rooms;
     }
 
+    // Create a room 
     public function create(RoomModel $room): int
     {
         $query = 'INSERT INTO rooms 
@@ -115,6 +120,7 @@ class RoomRepository extends Repository implements IRoomRepository
         return (int)$this->getConnection()->lastInsertId();
     }
 
+    // Update a room 
     public function update(RoomModel $room): bool
     {
         $sql = 'UPDATE rooms
@@ -140,6 +146,7 @@ class RoomRepository extends Repository implements IRoomRepository
         ]);
     }
 
+    // Delete a room by its ID
     public function delete(int $id): void
     {
         $query = 'DELETE FROM rooms WHERE id = :id';
@@ -149,6 +156,7 @@ class RoomRepository extends Repository implements IRoomRepository
         $statement->execute();
     }
     
+    //update publish status of a room
     public function togglePublish(int $roomId, bool $publish): bool
     {
         $query = 'UPDATE rooms 
@@ -163,6 +171,7 @@ class RoomRepository extends Repository implements IRoomRepository
         return $statement->execute();
     }
     
+    // Create a room and return its ID
     public function createRoomReturnId(RoomModel $room): int
     {
         return $this->create($room);

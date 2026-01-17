@@ -15,3 +15,4 @@ class Config
         return 'mysql:host=' . self::DB_HOST . ';dbname=' . self::DB_NAME . ';charset=utf8mb4';
     }
 }
+
